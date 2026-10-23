@@ -2407,7 +2407,8 @@ a.lv-hostc>.ic{color:var(--ink-3)}
 .ob-pi{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--paper-2);color:var(--ink)}
 
 /* ---------- шаг 2: профессии, кто пригласил, города ---------- */
-.ob-profs{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+/* круг 3: профессии — строка текста через «·», без вида кнопок (их нажимали и ничего не происходило) */
+.ob-profs{margin-top:18px;font-size:16px;line-height:1.65;font-weight:500;color:var(--ink)}
 .ob-inv{display:flex;align-items:center;gap:14px;margin-top:20px;padding:14px 16px;border-radius:var(--r-md);background:var(--paper-2)}
 .ob-inv .grow{display:flex;flex-direction:column;min-width:0}
 .ob-inv b{font-weight:600;line-height:22px;overflow-wrap:anywhere}
@@ -2551,9 +2552,11 @@ a.lv-hostc>.ic{color:var(--ink-3)}
   .ob-foot{min-height:0;padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom));flex-wrap:nowrap;gap:8px}
   .ob-foot>.ob-back{flex:none;width:48px;height:48px;margin-left:-4px;padding:0;justify-content:center}
   .ob-back-t{display:none}
-  .ob-foot-r{flex:1 1 auto;flex-wrap:nowrap;gap:6px}
-  .ob-foot-r .btn-ghost{padding:0 10px}
-  .ob-foot-r .btn-primary{flex:1 1 auto;padding:0 16px}
+  /* круг 3: три кнопки шага 4 («←», «Опубликую позже», «Опубликовать») не вылезают за поле 16 px справа —
+     ряд сжимается, «Опубликую позже» при нехватке места переносится на две строки */
+  .ob-foot-r{flex:1 1 auto;min-width:0;flex-wrap:nowrap;gap:6px}
+  .ob-foot-r .btn-ghost{flex:0 1 auto;min-width:0;padding:0 8px;white-space:normal;line-height:1.2;text-align:center}
+  .ob-foot-r .btn-primary{flex:1 1 auto;min-width:0;padding:0 14px}
   .ob-foot-r .ob-more{display:none}
   .ob-more-m{display:inline-flex;margin-top:16px;align-self:flex-start;font-size:16px}
   .ob-letter{font-size:16px;line-height:1.6}
@@ -3105,7 +3108,6 @@ a.pp-nm:hover{text-decoration-color:var(--ink)}
 .pf-photo.on,.pf-photo[aria-pressed="true"]{box-shadow:inset 0 0 0 3px var(--ink)}
 .pf-photo-ck{position:absolute;right:8px;top:8px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:none;place-items:center}
 .pf-photo[aria-pressed="true"] .pf-photo-ck{display:grid}
-.pf-wpick{grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
 .pf-cov-pick{display:flex;gap:6px;margin-top:8px}
 .pf-cov-pick .ph{width:64px;height:48px;border-radius:8px}
 /* работы */
@@ -3131,7 +3133,6 @@ a.pp-nm:hover{text-decoration-color:var(--ink)}
 .pw-consent{margin-top:2px}
 /* только что добавленные работы (A19): рамка, у каждой — «Есть согласие людей на фото» */
 .pw-item.pw-new{box-shadow:0 0 0 2px var(--heart)}
-.pf-wadd-ser{margin-top:16px;display:grid;gap:8px;max-width:420px}
 .pw-act{display:flex;align-items:center;gap:4px;margin-top:auto;padding-top:6px;border-top:1px solid var(--line)}
 .pw-act .iconbtn[disabled]{opacity:.35;cursor:default}
 /* статистика */
@@ -3301,12 +3302,6 @@ a.pp-nm:hover{text-decoration-color:var(--ink)}
 .pf-cons{display:grid;gap:10px;margin-top:12px}
 .pf-cons .cbox{min-height:24px;text-align:left}
 .pf-plate-cons{margin-top:10px}
-@media (max-width: 640px){
-  /* низ окна «Кадры из набора» прилипает к краю листа: «Добавить N» видно без прокрутки под сеткой */
-  .pf-wadd-f.m-foot{position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom));z-index:2;margin:16px -16px 0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--white);border-top:1px solid var(--line);flex-wrap:nowrap;gap:8px}
-  .pf-wadd-f.m-foot .btn{flex:1 1 auto;padding:0 12px}
-  .pf-wadd-f.m-foot .btn-ghost{flex:none}
-}
 
 
 /* ===== css/requests.css ===== */
@@ -4513,7 +4508,7 @@ const PROF0 = () => ({
   role: '', roleName: '', roles2: [], city: '', cities: [], since: '', about: '',
   open: [], services: [], styles: [], gear: [], exp: [], langs: [],
   links: { site: '', vk: '', tg: '', ig: '' },
-  srcOf: {},                 /* поле → 'site' | 'shots' | 'manual' — откуда заполнено */
+  srcOf: {},                 /* поле → 'site' | 'shots' | 'mine' (собрано из полей) | 'manual' — откуда заполнено */
   sources: [],               /* ссылки и скриншоты для автозаполнения */
   published: false, cover: '', open4all: true,
 });
@@ -4667,9 +4662,11 @@ const OB = {
   fillNeed: 'Добавь ссылку или скриншоты — по ним и соберём',
   fillSteps: ['Читаем сайт и скриншоты…', 'Находим работы и стили…', 'Готово'],
   fillNone: 'Профиль уже заполнен — новых полей не нашлось',
-  fillMore: 'Технику, опыт и услуги не придумываем — допишешь сам в «Мой профиль». Там же поправишь любое поле',
+  fillMore: 'Технику, опыт и услуги не придумываем — их можно дописать в «Мой профиль». Там же поправишь любое поле',
   fillLegal: 'Телефон, почту и дату рождения не переносим. Скриншоты удаляем через 30 дней',
-  src: { site: 'с сайта', shots: 'из скриншотов', manual: 'вручную', mine: 'из ответов' },
+  /* метки источника у полей (круг 3): страница по ссылке — «по ссылке» (это и сайт, и ВКонтакте); «О себе» собрано из имени,
+     профессии, города и стилей — «собрано из профиля» (на вопросы человек не отвечал) */
+  src: { site: 'по ссылке', shots: 'из скриншотов', manual: 'вручную', mine: 'собрано из профиля' },
   mainH: 'Главное',
   /* имя и обращение (A17): по ним — «Привет, …», «сам / сама», ник */
   nameL: 'Имя и фамилия',
@@ -5059,7 +5056,7 @@ const CRS_LIST = [
     lead: 'Зал с тёплыми лампами, гирлянды и одна вспышка в сумке. Курс о том, как снимать банкет без «пещеры» и серых лиц: от чтения зала до цвета кожи при смешанном свете.',
     outcomes: ['Читать зал за 10 минут до начала банкета', 'Ставить отражённый свет одной вспышкой', 'Снимать первый танец в темноте без шума и смаза', 'Собирать цвет кожи при смешанном свете', 'Отбирать серию за один вечер'],
     tariffs: [
-      { k: 'rec', t: 'Записи', price: 9900, inc: ['8 уроков · 3 ч видео', 'Схемы света и конспекты', 'Тест и сертификат участника'] },
+      { k: 'rec', t: 'Записи', price: 9900, inc: ['8 уроков · 3,1 ч видео', 'Схемы света и конспекты', 'Тест и сертификат участника'] },
       { k: 'tasks', t: 'С разбором заданий', price: 16900, inc: ['Всё из «Записей»', '3 задания с разбором автора', 'Ответы на вопросы к урокам'] },
       { k: 'personal', t: 'Личное ведение', price: 31900, inc: ['Всё из «С разбором»', '2 созвона один на один', 'Разбор твоей свадебной серии целиком'] },
     ],
@@ -6913,8 +6910,7 @@ function vEditor(r) {
     const mods = (d.modules || []).map((m, mi) => `<div class="au-mod"><div class="au-mod-h"><span class="au-mod-n">${mi + 1}</span><input class="input" data-bind="ui.pd.d.modules.${mi}.t" value="${esc(m.t || '')}" placeholder="Название модуля" aria-label="Модуль ${mi + 1}">${d.modules.length > 1 ? `<button type="button" class="iconbtn" data-act="au-e-mdel" data-arg="${mi}" aria-label="Удалить модуль ${mi + 1}">${ic('x', 18)}</button>` : ''}</div>
       <ul class="au-les">${(m.lessons || []).map((l, li) => { const [t, min, k] = l; return `<li><input class="input" data-bind="ui.pd.d.modules.${mi}.lessons.${li}.0" value="${esc(t || '')}" placeholder="${k === 'task' ? 'Задание' : 'Название урока'}" aria-label="Урок ${li + 1} модуля ${mi + 1}">${csel('au-e-lk', mi + '|' + li, k || 'video', Object.keys(CRS_LESSON_K).map(x => [x, CRS_LESSON_K[x][0]]), { label: 'Тип', cls: 'au-lk' })}${(k || 'video') === 'video' ? `<label class="au-min"><input class="input" data-bind="ui.pd.d.modules.${mi}.lessons.${li}.1" value="${esc(String(min || ''))}" inputmode="numeric" aria-label="Минут"><span class="sm t3">мин</span></label>` : '<span></span>'}<button type="button" class="iconbtn" data-act="au-e-ldel" data-arg="${mi}|${li}" aria-label="Удалить урок">${ic('x', 18)}</button></li>`; }).join('')}</ul>
       <button type="button" class="link sm" data-act="au-e-ladd" data-arg="${mi}">${ic('plus', 16)} Урок или задание</button></div>`).join('');
-    const n = crsLessonsN(d);
-    prog = sec(2, 'prog', 'Программа', 'Модули → уроки, задания и тест. Первый урок открыт всем как превью', `<div class="au-mods">${mods}</div><div class="btn-row" style="margin-top:14px"><button type="button" class="btn btn-secondary btn-sm" data-act="au-e-madd">${ic('plus', 16)} Модуль</button><span class="sm t3" id="au-e-total">${n} ${plural(n, 'урок', 'урока', 'уроков')} · ${crsHours(d)}</span></div>`);
+    prog = sec(2, 'prog', 'Программа', 'Модули → уроки, задания и тест. Первый урок открыт всем как превью', `<div class="au-mods">${mods}</div><div class="btn-row" style="margin-top:14px"><button type="button" class="btn btn-secondary btn-sm" data-act="au-e-madd">${ic('plus', 16)} Модуль</button><span class="sm t3" id="au-e-total">${esc(crsStepsLine(d))}</span></div>`);
   } else if (fmt === 'video') {
     prog = sec(2, 'prog', d.goods ? 'Файлы' : 'Видео', d.goods ? 'Пресеты, шаблоны или чек-листы и короткая видеоинструкция' : 'Один файл урока — до 4 ГБ, 1080p', `${d.file ? `<div class="au-up on">${ic('film', 22)}<span class="grow"><b>${esc(d.file)}</b><span class="sm t2">Загружено · 1080p</span></span><label class="au-min"><input class="input" data-bind="ui.pd.d.mins" value="${esc(String(d.mins || ''))}" inputmode="numeric" aria-label="Длительность, минут"><span class="sm t3">мин</span></label><button type="button" class="btn btn-ghost btn-sm" data-act="au-e-file">Заменить</button></div>` : `<button type="button" class="au-up" data-act="au-e-file">${ic('upload', 22)}<span class="grow"><b>Загрузить ${d.goods ? 'файлы' : 'видео'}</b><span class="sm t2">${d.goods ? 'Архив до 2 ГБ' : 'MP4 или MOV до 4 ГБ'}</span></span></button>`}
       <div class="field" style="margin-top:16px"><span id="au-g-l">Что это</span><div class="seg" role="radiogroup" aria-labelledby="au-g-l"><button type="button" role="radio" aria-checked="${!d.goods}" data-act="au-e-goods" data-arg="0">Видеоурок</button><button type="button" role="radio" aria-checked="${!!d.goods}" data-act="au-e-goods" data-arg="1">Товар: пресеты, шаблоны</button></div></div>`);
@@ -6965,7 +6961,7 @@ function auLive() {
   const chk = $('#au-check'); if (chk) chk.innerHTML = auCheckHtml(d);
   const h = $('#au-e-h'); if (h) h.textContent = String(d.title || '').trim() || 'Новый продукт';
   $$('.au-net').forEach(el => { const i = el.getAttribute('data-i'), p = i === 'p' ? d.price : ((d.tariffs || [])[+i] || {}).price; el.innerHTML = auNetLine(+String(p || '').replace(/\D/g, '')); });
-  const tot = $('#au-e-total'); if (tot) { const n = crsLessonsN(d); tot.textContent = `${n} ${plural(n, 'урок', 'урока', 'уроков')} · ${crsHours(d)}`; }
+  const tot = $('#au-e-total'); if (tot) tot.textContent = nbspT(crsStepsLine(d));
   const ready = auChecks(d).every(x => x[1]), b = $('[data-act="au-e-submit"]'), rec = auRec(pd.id);
   if (b && rec) { const why = auSubmitWhy(rec, d, ready, pd.checked); if (!why) { b.removeAttribute('aria-disabled'); b.removeAttribute('data-why'); } else { b.setAttribute('aria-disabled', 'true'); b.setAttribute('data-why', why); } const n = $('.au-nochg'); if (n) n.hidden = !(rec.status === 'published' && !auChanged(rec, d)); }
 }
@@ -9023,8 +9019,15 @@ function crsHours(c) {
   if (min < 60) return min + ' мин';
   const h = Math.round(min / 6) / 10; return String(h).replace('.', ',') + ' ч';
 }
-const crsLessonsN = c => crsSteps(c).filter(s => s.k === 'video').length;
-const crsTasksN = c => crsSteps(c).filter(s => s.k === 'task').length;
+/* у курса одно число везде — шаги программы (уроки, задания и тест): в выдаче, на странице, в «Моих курсах» и у автора
+   (круг 3: было «8 уроков» в выдаче и «0 из 12 шагов» после покупки). «12 шагов · 3 ч» */
+const crsStepsLine = c => { const n = crsSteps(c).length; return `${n} ${plural(n, 'шаг', 'шага', 'шагов')} · ${crsHours(c)}`; };
+/* из чего шаги: «8 уроков, 3 задания и тест» */
+function crsStepsParts(c) {
+  const st = crsSteps(c), v = st.filter(s => s.k === 'video').length, t = st.filter(s => s.k === 'task').length, q = st.filter(s => s.k === 'test').length;
+  const a = [v ? `${v} ${plural(v, 'урок', 'урока', 'уроков')}` : '', t ? `${t} ${plural(t, 'задание', 'задания', 'заданий')}` : '', q ? (q > 1 ? `${q} теста` : 'тест') : ''].filter(Boolean);
+  return a.length > 1 ? a.slice(0, -1).join(', ') + ' и ' + a[a.length - 1] : a[0] || '';
+}
 /* цена: у курса — от минимального тарифа; у Агаповой — без цены */
 const crsMinPrice = c => c.tariffs && c.tariffs.length ? Math.min.apply(null, c.tariffs.map(t => +t.price || 0)) : (c.price == null ? null : +c.price);
 function crsPriceT(c) {
@@ -9039,7 +9042,7 @@ const crsDateT = s => { const d = D(s); return `${WD[d.getDay()]} ${d.getDate()}
 /* строка формата под названием: «12 уроков · 5 ч», «Краснодар · 21 ноября · 4 места», «90 минут · онлайн» */
 function crsMeta(c) {
   if (c.real) return `${c.days} дня · группа до ${c.group} человек`;
-  if (c.fmt === 'course') { const n = crsLessonsN(c); return `${n} ${plural(n, 'урок', 'урока', 'уроков')} · ${crsHours(c)}`; }
+  if (c.fmt === 'course') return crsStepsLine(c);
   if (c.fmt === 'video') return c.goods ? c.files || 'Товар' : `${c.mins || crsHours(c)} ${c.mins ? 'минут' : ''}`.trim();
   if (c.fmt === 'offline') { const left = c.seats ? c.seats[0] : 0; return `${c.city} · ${crsDate(c.date)}${c.seats ? ` · ${left} ${plural(left, 'место', 'места', 'мест')}` : ''}`; }
   if (c.fmt === 'review') return `${c.dur || 60} минут · ${c.online === false ? 'офлайн' : 'онлайн'}`;
@@ -9193,8 +9196,8 @@ function crsProgram(c) {
     return `<li class="crs-mod"><div class="crs-mod-h"><span class="crs-mod-n">${mi + 1}</span><b>${esc(m.t)}</b><span class="sm t3">${ls.length} ${plural(ls.length, 'шаг', 'шага', 'шагов')}</span></div>
       <ul class="crs-les">${ls.map(s => `<li class="${s.free ? 'free' : ''}"><span class="crs-les-n">${s.n}</span><span class="grow">${esc(s.t)}</span><span class="crs-les-m sm">${s.free ? '<span class="badge">Открыт</span>' : ic('lock', 16)}${s.k === 'video' ? `${s.min} мин` : esc(CRS_LESSON_K[s.k][0])}</span></li>`).join('')}</ul></li>`;
   }).join('');
-  const n = crsLessonsN(c), tk = crsTasksN(c);
-  return `<section class="crs-sec" id="crs-prog" aria-labelledby="crs-prog-h"><h2 class="d2" id="crs-prog-h">Программа</h2><p class="sm t2">${n} ${plural(n, 'урок', 'урока', 'уроков')} · ${crsHours(c)}${tk ? ` · ${tk} ${plural(tk, 'задание', 'задания', 'заданий')}` : ''} · первый урок открыт</p><ol class="crs-mods">${mods}</ol></section>`;
+  const n = steps.length, parts = crsStepsParts(c);
+  return `<section class="crs-sec" id="crs-prog" aria-labelledby="crs-prog-h"><h2 class="d2" id="crs-prog-h">Программа</h2><p class="sm t2">${n} ${plural(n, 'шаг', 'шага', 'шагов')}${parts ? `: ${esc(parts)}` : ''} · ${crsHours(c)} видео · первый урок открыт</p><ol class="crs-mods">${mods}</ol></section>`;
 }
 function crsAuthorSec(c) {
   const p = crsWho(c.author), works = c.real ? (c.strip || []) : Array.from(new Set(crsStrip(c).concat(c.strip || [], (who(c.author) || {}).works ? [] : [c.cover]))).filter(n => img(n)).slice(0, 6);
@@ -9435,7 +9438,7 @@ TITLES['c'] = r => { const c = crsGet(r.parts[1]); return c ? (c.real ? 'Мас�
 /* ===== screens/fill.js ===== */
 /* =====================================================================
    screens/fill.js (A1) · «Заполним профиль за тебя» (СПЕЦ §6.6, механика club_fill.js Академии): ссылка на сайт или профиль,
-   скриншоты 2–3, работы 10–30 → прогресс в три строки → поля с метками «с сайта» / «из скриншотов» (правка снимает метку),
+   скриншоты 2–3, работы 10–30 → прогресс в три строки → поля с метками «по ссылке» / «из скриншотов» (правка снимает метку),
    источники и «Обновить из источников» (раз в месяц, в PRO — всегда). fillBlock(where) — для #/profile ('pf') и онбординга ('ob').
    Полный экран #/profile/fill — три шага прототипа v1: Загрузка → Сборка → Проверка с живым предпросмотром «Так профиль увидят коллеги»,
    «Опубликовать» и «Сохранить черновик»; «Заполню сам» — те же поля пустыми. Телефон, почту и дату рождения не переносим.
@@ -9445,8 +9448,10 @@ TITLES['c'] = r => { const c = crsGet(r.parts[1]); return c ? (c.real ? 'Мас�
    выбор кадров с превью (FL().worksPick), при «Заполнить» они встают первыми в «Новые работы». В черновике — имя и фамилия.
    Круг 2 (UX-тест 23.10): «О себе» собирается из введённого (flAbout: имя, профессия, город, стили по ссылке, «он · она») и
    пересобирается, пока его не правили руками; техники, опыта и услуг автозаполнение не ставит; «из скриншотов» — только когда
-   они загружены; по новой ссылке — 6 кадров этой профессии в работы; «Добавить работы» — настоящий выбор файлов (pfAddBtns),
-   набор кадров — вторая кнопка; согласия — один раз, в ME().obConsent (pfConsBlock), и без них не опубликовать.
+   они загружены; по новой ссылке — 6 кадров этой профессии в работы; «Добавить работы» — настоящий выбор файлов (pfAddBtns);
+   согласия — один раз, в ME().obConsent (pfConsBlock), и без них не опубликовать.
+   Круг 3: кадры по ссылке — только результат работы профессии (у фотографа — свадьбы и портреты, без людей с камерой; у визажиста —
+   макияж, а не косметика на столе), из них и обложка; «О себе» помечено «собрано из профиля» (srcOf.about = 'mine').
    ===================================================================== */
 const FL = () => UI.fill || (UI.fill = { links: '', shots: 0, works: 0, worksPick: [], step: 0, done: null, manual: false, q: { city: '', cities: [], price: '' } });
 const flBadLink = v => !/[a-zа-яё0-9-]+\.[a-zа-яё]{2,}/i.test(v);
@@ -9462,18 +9467,22 @@ function flDetectProf(texts) {
   return hit ? hit[0] : '';
 }
 /* что «находим» по профессии: «открыт к» (только когда загружены скриншоты) и кадры с сайта — этой профессии.
-   Технику, опыт, услуги и цены автозаполнение не ставит: их никто не указывал (UX-тест 23.10, круг 2) */
+   Технику, опыт, услуги и цены автозаполнение не ставит: их никто не указывал (UX-тест 23.10, круг 2).
+   Кадры — то, что выглядит результатом работы (круг 3): у фотографа — свадебные и портретные снимки, без людей с камерой
+   (wed02, wed03, wed07, wed09, wed12, wed13 — бэкстейдж); у видеографа и reels — съёмка и монтаж; у визажиста — макияж на лице;
+   у стилиста — причёски; у модели — портреты, но не аватары коллег (por01, 02, 05, 06, 08–24); у ведущего и организатора — само
+   событие; у декоратора — оформление. Пул — не меньше 6, чтобы 6 кадров по любой ссылке были из него */
 function flProfData(prof) {
   const by = {
-    photo: { open: ['second', 'tfp', 'collab'], pool: ['wed13', 'wed10', 'wed02', 'por02', 'wed05', 'wed06', 'wed01', 'por05', 'wed03', 'wed12', 'wed07', 'wed09'] },
+    photo: { open: ['second', 'tfp', 'collab'], pool: ['wed10', 'wed04', 'wed14', 'wed06', 'wed11', 'por03', 'wed05', 'wed08', 'wed01', 'por07', 'por04'] },
     video: { open: ['second', 'collab'], pool: ['vid03', 'vid05', 'vid04', 'vid07', 'vid09', 'vid01', 'vid06', 'vid02', 'vid08'] },
     reels: { open: ['collab', 'second'], pool: ['vid01', 'vid02', 'vid06', 'vid08', 'vid04', 'vid09', 'vid03', 'vid05', 'vid07'] },
-    mua: { open: ['collab', 'masterclass'], pool: ['mua01', 'mua02', 'mua03', 'mua04', 'mua05', 'mua06', 'mua07', 'mua08', 'mua09', 'mua10', 'por04', 'por07'] },
-    stylist: { open: ['collab', 'masterclass'], pool: ['mua11', 'mua12', 'mua13', 'mua14', 'por03', 'por04', 'mua15', 'mua16', 'por07', 'mua17'] },
-    model: { open: ['tfp', 'collab'], pool: ['por09', 'por10', 'por11', 'por13', 'por14', 'por15', 'por16', 'por17', 'por19', 'por21'] },
-    host: { open: ['replace', 'collab'], pool: ['wed04', 'wed08', 'wed11', 'wed14', 'wed01', 'wed05', 'wed06', 'wed12', 'dec03', 'dec06'] },
-    decor: { open: ['collab'], pool: ['dec01', 'dec02', 'dec03', 'dec04', 'dec05', 'dec06', 'dec07', 'dec08', 'wed05', 'wed06'] },
-    org: { open: ['collab', 'replace'], pool: ['dec05', 'dec02', 'wed05', 'wed06', 'dec07', 'wed11', 'dec01', 'wed03', 'dec04', 'wed14'] },
+    mua: { open: ['collab', 'masterclass'], pool: ['mua04', 'mua11', 'mua03', 'mua17', 'mua16', 'mua19', 'mua15', 'por03', 'mua10'] },
+    stylist: { open: ['collab', 'masterclass'], pool: ['mua15', 'mua17', 'mua16', 'por07', 'mua19', 'por04', 'wed04'] },
+    model: { open: ['tfp', 'collab'], pool: ['por04', 'por07', 'por03', 'mua15', 'mua19', 'mua16', 'mua17'] },
+    host: { open: ['replace', 'collab'], pool: ['wed08', 'wed11', 'wed10', 'wed05', 'wed06', 'wed01', 'dec02', 'dec07', 'dec05', 'dec03'] },
+    decor: { open: ['collab'], pool: ['dec01', 'dec02', 'dec03', 'dec04', 'dec05', 'dec06', 'dec07', 'dec08'] },
+    org: { open: ['collab', 'replace'], pool: ['dec05', 'dec02', 'wed05', 'wed06', 'dec07', 'wed11', 'dec01', 'dec04', 'wed14', 'wed10'] },
   };
   const d = by[prof] || { open: [], pool: [] };
   return { open: d.open, pool: d.pool.filter(n => img(n)), styles: FL_STYLE_OPTS[prof] || [] };
@@ -9539,7 +9548,8 @@ function flApply(o) {
     links.forEach(v => { const k = /vk\.(com|ru)/i.test(v) ? 'vk' : 'site'; if (!pr.links[k] || (pr.srcOf.links && pr.srcOf.links !== 'manual')) pr.links[k] = v; });
     pr.srcOf.links = 'site'; keys.push('links');
   }
-  if (prof && can('about')) { const t = flAbout(); if (t) { pr.about = t; pr.srcOf.about = src; keys.push('about'); } }
+  /* «О себе» собрано из полей профиля (имя, профессия, город, стили), а не взято со страницы — так и помечаем */
+  if (prof && can('about')) { const t = flAbout(); if (t) { pr.about = t; pr.srcOf.about = 'mine'; keys.push('about'); } }
   /* кадры с сайта: по новой ссылке — 6 кадров этой профессии, у разных ссылок — разные */
   let siteN = 0;
   if (prof && fresh.length) {
@@ -9576,7 +9586,7 @@ function fillBlock(where) {
     ${form}${progress}${summary}${sources}
     <p class="sm t3 fl-law">${ic('shield', 14)} Телефон, почту и дату рождения не переносим, скриншоты удаляем через 30 дней</p></section>`;
 }
-/* скриншоты — настоящий выбор файлов (считаем картинки, как в знакомстве); работы — свои файлы или кадры из набора (pfAddBtns, круг 2) */
+/* скриншоты — настоящий выбор файлов (считаем картинки, как в знакомстве); работы — только свои файлы (pfAddBtns, круг 3) */
 CHANGE['fill-shots'] = el => { const n = Array.from(el.files || []).filter(f => /^image\//.test(f.type)).length; FL().shots = n; rerender(); if (n) toast(`${n} ${plural(n, 'скриншот', 'скриншота', 'скриншотов')} — нажми «Заполнить»`, 'screen'); };
 ACT['fill-shots-del'] = () => { FL().shots = 0; rerender(); };
 ACT['fill-works-x'] = n => { const F = FL(); F.worksPick = (F.worksPick || []).filter(x => x !== n); F.works = F.worksPick.length; rerender(); };
@@ -10396,9 +10406,11 @@ LEAVE.push(() => clearInterval(lgTick));
    и «Найти коллег в …» — только из ответа; в повторе принятый кодекс — без галочек и с «Дальше»; на шагах 1–2 — строка
    «что без подписки и сколько берём». Автозаполнение по ссылке определяет профессию (flDetectProf / flProfData — screens/fill.js).
    Круг 2 (цель — профиль за 18–20 действий): «Принять все правила» активна сразу и принимает все семь (по одному — можно);
-   шаг 4 собирает профиль один раз и сразу публикует: имя, профессия, город, ник, работы (свои файлы или кадры из набора;
-   по ссылке — 6 кадров этой профессии) и два согласия — ME().obConsent, единственное место, где их спрашивают; «Опубликовать»
+   шаг 4 собирает профиль один раз и сразу публикует: имя, профессия, город, ник, работы (свои файлы; по ссылке — 6 кадров
+   этой профессии) и два согласия — ME().obConsent, единственное место, где их спрашивают; «Опубликовать»
    без них недоступна. «Опубликую позже» сохраняет черновик. Города на шаге 2 — строки без рамок и цифр, не кнопки.
+   Круг 3: профессии на шаге 2 — строка текста, не чипы; «О себе» помечено «собрано из профиля»; пустые имя и ник красные только
+   после ухода из поля или попытки опубликовать (obInvSync); «Взять кадры из набора» убрана — только свои файлы.
    ===================================================================== */
 const OB_N = 5;
 SEED.push((role, st) => { if (st.obWay == null) st.obWay = ''; if (!st.obConsent) st.obConsent = { data: role !== 'new', photos: role !== 'new' }; });
@@ -10408,7 +10420,7 @@ const obCode = () => { const me = ME(); if (!Array.isArray(me.code)) me.code = [
 const obCodeAll = () => CODE.every((x, i) => obCode().indexOf(i) >= 0);
 const obDoneN = () => CODE.filter((x, i) => obCode().indexOf(i) >= 0).length;
 function obU() {
-  if (!UI.ob || UI.ob.role !== S.role) UI.ob = { role: S.role, way: '', link: '', shots: 0, works: 0, run: 0, res: null, nick: null, nickOwn: false, t: [], bg: null, focusAt: UI.ob ? UI.ob.focusAt : '', sy: 0, syAt: '' };
+  if (!UI.ob || UI.ob.role !== S.role) UI.ob = { role: S.role, way: '', link: '', shots: 0, works: 0, run: 0, res: null, nick: null, nickOwn: false, t: [], bg: null, focusAt: UI.ob ? UI.ob.focusAt : '', sy: 0, syAt: '', touched: {}, tried: false };
   return UI.ob;
 }
 const obCons = () => { const me = ME(); if (!me.obConsent) me.obConsent = { data: false, photos: false }; return me.obConsent; };
@@ -10448,6 +10460,14 @@ function obNeed() {
   return m.length ? `${OB.needPre} ${m.length > 1 ? m.slice(0, -1).join(', ') + ' и ' + m[m.length - 1] : m[0]}` : '';
 }
 const obReady4 = () => !obMiss().length;
+/* красная рамка (круг 3): пустые имя и ник — только после ухода из поля или попытки опубликовать; неверный или занятый ник — сразу */
+function obInv(k) {
+  const u = obU(), shown = u.tried || !!u.touched[k];
+  if (k === 'name') return shown && !myName();
+  const st = obNickState(u.nick); return st === 'bad' || st === 'busy' || (shown && st !== 'ok');
+}
+const obInvA = k => (obInv(k) ? 'aria-invalid="true"' : '');
+function obInvSync() { [['name', '#ob-name'], ['nick', '#ob-nick']].forEach(([k, sel]) => { const el = $(sel); if (!el) return; if (obInv(k)) el.setAttribute('aria-invalid', 'true'); else el.removeAttribute('aria-invalid'); }); }
 /* эфир Агаповой 28 октября (A2: DB.events), иначе — факты СПЕЦ §1 */
 function obLive() {
   const e = (DB.events || []).find(x => x.host === 'agapova' && String(x.d) === '2026-10-28') || (DB.events || []).find(x => x.host === 'agapova');
@@ -10523,7 +10543,7 @@ function obS2(c) {
     return `<li class="ob-city${city === mine ? ' mine' : ''}">${av.length ? `<span class="avstack" aria-hidden="true">${av.map(p => avatar(p)).join('')}</span>` : ''}<span class="ob-city-n">${esc(city)}</span>${city === mine ? `<span class="badge dark ob-city-b">${esc(OB.cityMine)}</span>` : ''}</li>`;
   }).join('');
   return obBody(obH(c) + `<p class="lead ob-lead">${esc(OB.steps[1].lead)}</p>
-    <ul class="ob-profs" aria-label="Профессии в сообществе">${PROFS.map(p => `<li class="chip">${esc(p[2])}</li>`).join('')}</ul>
+    <p class="ob-profs">${PROFS.map(p => `<span class="nb">${esc(p[2])}</span>`).join(' · ')}</p>
     ${obInvited()}
     <h2 class="h4 ob-sub">${esc(OB.citiesH)}</h2><ul class="ob-cities">${tiles}</ul>
     <p class="note-line ob-note">${ic('pin', 18)}<span>${esc(OB.cityNote)}</span></p>`) + obFoot(c, obNext(c));
@@ -10580,10 +10600,10 @@ function obFillRows() {
   if (r.keys.indexOf('role') >= 0 && pr.role) rows.push(['role', OB.roleL, profName(pr.role), tag('who')]);
   if (r.keys.indexOf('styles') >= 0 && (pr.styles || []).length) rows.push(['styles', 'Стили', pr.styles.join(', '), tag('styles')]);
   if (r.keys.indexOf('open') >= 0 && (pr.open || []).length) rows.push(['open', byG('Открыт к', 'Открыта к'), pr.open.map(k => (OPEN_TO.find(o => o[0] === k) || [k, k])[1]).join(', '), tag('open')]);
-  /* «О себе» собран из ответов (имя, город, род) и стилей по ссылке — так и подписываем */
+  /* «О себе» собран из полей профиля (имя, профессия, город, род) и стилей — «собрано из профиля»; ссылку ввёл сам человек — без метки */
   if (r.keys.indexOf('about') >= 0 && pr.about) rows.push(['about', 'О себе', pr.about, src.mine]);
   if (r.works) rows.push(['works', 'Работы', `${r.works} ${plural(r.works, 'кадр', 'кадра', 'кадров')} — ниже, в «Работах»`, src.site]);
-  if (r.keys.indexOf('links') >= 0 && u.link.trim()) rows.push(['links', 'Ссылки', u.link.trim(), src.site]);
+  if (r.keys.indexOf('links') >= 0 && u.link.trim()) rows.push(['links', 'Ссылки', u.link.trim(), '']);
   return rows;
 }
 function obFillBlock() {
@@ -10597,7 +10617,7 @@ function obFillBlock() {
   if (u.res) {
     const rows = obFillRows(), n = u.res.n;
     return `<div class="ob-fill pane tight"><p class="ob-res-h">${ic('check', 18, 'ok-ic')}<b>${esc(n || u.res.works ? flDoneT(u.res) + ' — проверь' : OB.fillNone)}</b></p>
-      ${rows.length ? `<ul class="ob-res">${rows.map(([k, l, v, b]) => `<li><span class="ob-res-l">${esc(l)}</span><span class="ob-res-v"${k === 'about' ? ' id="ob-res-about"' : ''}>${esc(v)}</span><span class="badge line">${esc(b)}</span></li>`).join('')}</ul>` : ''}
+      ${rows.length ? `<ul class="ob-res">${rows.map(([k, l, v, b]) => `<li><span class="ob-res-l">${esc(l)}</span><span class="ob-res-v"${k === 'about' ? ' id="ob-res-about"' : ''}>${esc(v)}</span>${b ? `<span class="badge line">${esc(b)}</span>` : ''}</li>`).join('')}</ul>` : ''}
       <p class="note-line ob-res-n">${ic('info', 18)}<span>${esc(OB.fillMore)}</span></p>
       <button type="button" class="link sm ob-res-again" data-act="ob-fill-again">${ic('link', 16)} Другая ссылка или скриншоты</button></div>`;
   }
@@ -10611,7 +10631,7 @@ function obFillBlock() {
       <p class="sm t3">${esc(OB.fillLegal)}</p></div>
   </div>`;
 }
-/* работы прямо в знакомстве: свои файлы (настоящий выбор, превью через object URL) или кадры из набора — нужна хотя бы одна */
+/* работы прямо в знакомстве: свои файлы (настоящий выбор, превью через object URL) — нужна хотя бы одна */
 function obWorks() {
   const ws = (ME().works || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0)), n = ws.length, show = 7;
   return `<section class="ob-works" aria-labelledby="ob-w-h"><h2 class="h4" id="ob-w-h">${esc(OB.worksH)}${n ? ` <span class="ob-w-n">· ${n}</span>` : ''}</h2>
@@ -10646,12 +10666,12 @@ function obS4(c) {
   const srcB = k => pr.srcOf && pr.srcOf[k] && pr.srcOf[k] !== 'manual' ? ` <span class="badge line">${esc(OB.src[pr.srcOf[k]] || '')}</span>` : '';
   const main = `<section class="ob-main" aria-labelledby="ob-main-h"><h2 class="h4" id="ob-main-h">${esc(OB.mainH)}</h2>
     <div class="ob-fg">
-      <div class="field"><label class="flabel" for="ob-name" id="ob-name-l">${esc(OB.nameL)}</label><input id="ob-name" class="input" value="${esc(myName())}" maxlength="60" autocomplete="name" autocapitalize="words" placeholder="${esc(OB.namePh)}" aria-required="true" ${myName() ? '' : 'aria-invalid="true"'}></div>
+      <div class="field"><label class="flabel" for="ob-name" id="ob-name-l">${esc(OB.nameL)}</label><input id="ob-name" class="input" value="${esc(myName())}" maxlength="60" autocomplete="name" autocapitalize="words" placeholder="${esc(OB.namePh)}" aria-required="true" ${obInvA('name')}></div>
       <div class="field"><span class="flabel" id="ob-g-l">${esc(OB.gL)}</span><div class="picks ob-g" role="radiogroup" aria-labelledby="ob-g-l">${OB.gOpts.map(([k, l]) => `<button type="button" class="pick" role="radio" aria-checked="${g === k}" data-act="ob-g" data-arg="${k}">${esc(l)}</button>`).join('')}</div></div>
       <div class="field"><span class="flabel" id="ob-role-l">${esc(OB.roleL)}${srcB('role')}</span>${csel('ob-role', null, pr.role || '', PROFS.map(p => [p[0], p[1]]), { label: OB.roleL, ph: OB.rolePh, id: 'ob-role', labelId: 'ob-role-l' })}</div>
       <div class="field"><span class="flabel" id="ob-city-l">${esc(OB.cityL)}${srcB('city')}</span>${csel('ob-city', null, pr.city || '', CITIES, { label: OB.cityL, ph: OB.cityPh, id: 'ob-city', labelId: 'ob-city-l' })}</div>
       <div class="field ob-nick"><label class="flabel" for="ob-nick">${esc(OB.nickL)}</label>
-        <span class="ob-nk"><span class="ob-pre" aria-hidden="true">${esc(CONFIG.base)}/</span><input id="ob-nick" class="input" value="${esc(u.nick)}" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="ob-nst" ${obNickState(u.nick) === 'ok' ? '' : 'aria-invalid="true"'}></span>
+        <span class="ob-nk"><span class="ob-pre" aria-hidden="true">${esc(CONFIG.base)}/</span><input id="ob-nick" class="input" value="${esc(u.nick)}" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="ob-nst" ${obInvA('nick')}></span>
         <span class="hint" id="ob-nst" aria-live="polite">${obNickHint(u.nick)}</span></div>
     </div></section>`;
   const pub = `<button type="submit" class="btn btn-primary" id="ob-next" data-qa="ob-publish" ${ok ? '' : `aria-disabled="true" data-why="${esc(obNeed())}"`}>${esc(OB.publish)}</button>`;
@@ -10770,6 +10790,7 @@ FORM['ob-prof'] = () => {
   if (document.activeElement && document.activeElement.id === 'ob-link') { ACT['ob-fill'](); return; }
   const m = obMiss();
   if (m.length) {
+    obU().tried = true; obInvSync();
     toast(obNeed(), 'info');
     const f = { name: '#ob-name', role: '#ob-role', city: '#ob-city', nick: '#ob-nick', works: '[data-qa="work-files"] input', cons: '[data-qa="cons-data"]', data: '[data-qa="cons-data"]', photos: '[data-qa="cons-photos"]' }[m[0]], el = f && $(f);
     if (el) { el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'center' }); } return;
@@ -10798,25 +10819,25 @@ document.addEventListener('input', e => {
     /* «О себе» из автозаполнения начинается с имени — обновляем строку на месте, без перерисовки */
     if (flAboutRefresh()) { const ab = $('#ob-res-about'); if (ab) ab.textContent = nbspT(ME().prof.about); }
     save();
-    if (full) t.removeAttribute('aria-invalid'); else t.setAttribute('aria-invalid', 'true');
     if (!u.nickOwn) {
       u.nick = obNickSuggest(full); const ni = $('#ob-nick'), h = $('#ob-nst');
-      if (ni) { ni.value = u.nick; if (obNickState(u.nick) === 'ok') ni.removeAttribute('aria-invalid'); else ni.setAttribute('aria-invalid', 'true'); }
+      if (ni) ni.value = u.nick;
       if (h) h.innerHTML = obNickHint(u.nick);
     }
-    obSync4(); return;
+    obInvSync(); obSync4(); return;
   }
   if (t.id === 'ob-nick') {
     const v = obNickClean(t.value); if (t.value !== v) t.value = v;
-    u.nick = v; u.nickOwn = !!v; const st = obNickState(v);
+    u.nick = v; u.nickOwn = !!v;
     const h = $('#ob-nst'); if (h) h.innerHTML = obNickHint(v);
-    if (st === 'ok') t.removeAttribute('aria-invalid'); else t.setAttribute('aria-invalid', 'true');
-    obSync4(); return;
+    obInvSync(); obSync4(); return;
   }
   u.link = t.value;
   const b = $('#ob-fill');
   if (b) { if (u.link.trim() || u.shots) { b.removeAttribute('aria-disabled'); b.removeAttribute('data-why'); } else { b.setAttribute('aria-disabled', 'true'); b.setAttribute('data-why', OB.fillNeed); } }
 });
+/* ушли из имени или ника — с этого момента пустое поле подсвечивается */
+document.addEventListener('focusout', e => { const t = e.target; if (!t || (t.id !== 'ob-name' && t.id !== 'ob-nick') || !UI.ob) return; UI.ob.touched[t.id === 'ob-name' ? 'name' : 'nick'] = true; obInvSync(); });
 /* Esc: в повторе — закрыть (туда, откуда открыли); в первый раз — ничего */
 ESC.push(() => {
   const a = route().parts[0];
@@ -11587,9 +11608,11 @@ NOTES.push(role => {
    плашка и «Опубликовать» с причиной в data-why (pfPubMiss); новые работы — первыми, в серию «Новые работы» или выбранную, с
    подсветкой и галочкой согласия (pfAddWorks, A19); смена города не делает старый выездом; «Сохранить / Отмена» внизу карточки;
    занятый день в шапке не повторяется; окна разбора — три и «ещё N» (A27).
-   Круг 2: «Добавить работы» — настоящий выбор файлов (pfAddBtns → work-files, превью через object URL, imgAddFile ядра),
-   набор кадров — вторая кнопка «Взять кадры из набора»; согласия (данные, люди на фото) — один раз, в ME().obConsent,
-   и без них «Опубликовать» недоступна (pfPubMiss); новые работы получают согласие из общего.
+   Круг 2: «Добавить работы» — настоящий выбор файлов (pfAddBtns → work-files, превью через object URL, imgAddFile ядра);
+   согласия (данные, люди на фото) — один раз, в ME().obConsent, и без них «Опубликовать» недоступна (pfPubMiss);
+   новые работы получают согласие из общего.
+   Круг 3: «Взять кадры из набора» убрана (кодекс: «Свои работы — свои») — свои работы только выбором файлов, чужие кадры
+   приходят лишь из автозаполнения по ссылке. Серию сами не заводим: у кого серий нет, работы без серии, «0 серий» не пишем.
    ===================================================================== */
 /* чего не хватает для публикации: имя, профессия, город, ник, хотя бы одна работа (A16) и оба согласия (круг 2) */
 function pfPubMiss() { const me = ME(), pr = me.prof || {}, cn = pfCons(); return [!myName() && 'имя', !pr.role && 'профессия', !pr.city && 'город', !me.nick && 'ник', !(me.works || []).length && 'хотя бы одна работа', !cn.data && 'согласие на обработку данных', !cn.photos && 'согласие людей на фото'].filter(Boolean); }
@@ -11610,24 +11633,25 @@ function pfConsSet(k) {
   save();
 }
 ACT['cons-t'] = k => { pfConsSet(k); rerender(); };
-/* «Добавить работы» — настоящий выбор файлов; второй вариант — кадры из набора (mode: '' — в профиль, 'fill' — к автозаполнению, 'ob' — знакомство) */
+/* «Добавить работы» — только настоящий выбор своих файлов (mode: '' — в профиль, 'fill' — к автозаполнению, 'ob' — знакомство) */
 const pfAddBtns = (mode, o) => { o = o || {}; const sm = o.sm ? ' btn-sm' : '';
-  return `<span class="pf-addw"><label class="btn ${o.primary ? 'btn-primary' : 'btn-secondary'}${sm} pf-file" data-qa="work-files">${ic('upload', o.sm ? 16 : 18)} ${esc(o.t || 'Добавить работы')}<input type="file" accept="image/*" multiple class="sr" data-change="work-files" data-arg="${esc(mode || '')}"></label><button type="button" class="btn btn-quiet${sm}" data-act="work-add" data-arg="${esc(mode || '')}" data-qa="work-set">${ic('grid', o.sm ? 16 : 18)} Взять кадры из набора</button></span>`; };
+  return `<span class="pf-addw"><label class="btn ${o.primary ? 'btn-primary' : 'btn-secondary'}${sm} pf-file" data-qa="work-files">${ic('upload', o.sm ? 16 : 18)} ${esc(o.t || 'Добавить работы')}<input type="file" accept="image/*" multiple class="sr" data-change="work-files" data-arg="${esc(mode || '')}"></label></span>`; };
 const pfPubWhy = m => 'Для публикации нужны: ' + m.join(', ');
 /* «Опубликовать»: не хватает полей — кнопка aria-disabled, причина — тостом по нажатию (ядро: data-why) */
 const pfPubBtn = cls => { const m = pfPubMiss(); return `<button type="button" class="btn btn-primary ${cls || ''}" data-act="prof-publish" data-qa="prof-publish"${m.length ? ` aria-disabled="true" data-why="${esc(pfPubWhy(m))}"` : ''}>Опубликовать</button>`; };
-/* добавить работы первыми (A19): sid — id серии, 'new' — «Новые работы» (создаётся, если нет и позволяет тариф), '' — без серии */
-function pfAddWorks(imgs, sid, title) {
+/* добавить работы первыми (A19): sid — id серии, 'new' — «Новые работы» (создаётся, только если серии уже есть и позволяет тариф;
+   у кого серий нет — работы без серии, серию за человека не заводим, круг 3), '' — без серии */
+function pfAddWorks(imgs, sid) {
   const me = ME(); me.works = me.works || []; me.series = me.series || [];
-  if (sid === 'new') { const s0 = me.series.find(x => x.title === 'Новые работы') || (me.series.length === 1 && me.series[0].title === 'Портфолио' && !me.prof.published ? me.series[0] : null); sid = s0 ? s0.id : me.series.length < lim('series') ? (me.series.push({ id: uid('s'), title: me.series.length ? 'Новые работы' : 'Портфолио', closed: false }), me.series[me.series.length - 1].id) : ''; }
-  else if (sid === '__new') { if (me.series.length < lim('series')) { const id = uid('s'); me.series.push({ id, title: String(title || '').trim() || 'Новая серия', closed: false }); sid = id; } else sid = ''; }
+  if (sid === 'new') { const s0 = me.series.find(x => x.title === 'Новые работы'); sid = s0 ? s0.id : me.series.length && me.series.length < lim('series') ? (me.series.push({ id: uid('s'), title: 'Новые работы', closed: false }), me.series[me.series.length - 1].id) : ''; }
+  else if (sid && !me.series.some(x => x.id === sid)) sid = '';
   const min = me.works.reduce((m, w) => Math.min(m, +w.order || 0), 0), k = Date.now().toString(36);
   const add = imgs.filter(n => !me.works.some(w => w.img === n)).map((img, i, a) => ({ id: `w:${myNick()}:${k}${i}`, img, series: sid || '', coauthors: [], photoBy: myNick(), consent: !!pfCons().photos, order: min - a.length + i }));
   me.works = add.concat(me.works);
   if (sid && !me.prof.cover) me.prof.cover = sid;
   return add;
 }
-const PF_SRC = { site: 'с сайта', shots: 'из скриншотов', manual: 'вручную' };
+const PF_SRC = { site: 'по ссылке', shots: 'из скриншотов', manual: 'вручную', mine: 'из полей профиля' };
 const pfG = (p, m, f) => (p.g === 'f' ? f : m);
 const pfVerb = p => ({ photo: 'Снимает', video: 'Снимает', reels: 'Снимает', mua: 'Красит', stylist: 'Собирает образы', host: 'Ведёт', model: 'Снимается', org: 'Организует', decor: 'Оформляет' }[p.prof] || 'В профессии');
 const PF_CITY_TO = { 'Москва': 'Москву' };
@@ -11716,7 +11740,9 @@ function pfPublic(p, r) {
   let facts = '';
   if (!real) {
     const rt = typeof ucPersonRating === 'function' ? ucPersonRating(p) : null;
-    const items = [p.since ? `${pfVerb(p)} с <b>${esc(p.since)}</b>` : '', ws.length ? `<b>${ws.length}</b> ${plural(ws.length, 'работа', 'работы', 'работ')}` : '', (p.series || []).length ? `<b>${p.series.length}</b> ${plural(p.series.length, 'серия', 'серии', 'серий')}` : '', evs.length ? `<b>${evs.length}</b> ${plural(evs.length, 'эфир', 'эфира', 'эфиров')}` : '', p.resp ? `Отвечает за <b>~${p.resp} ${plural(p.resp, 'час', 'часа', 'часов')}</b>` : ''].filter(Boolean);
+    /* серии — только те, в которых есть работы (круг 3: пустых и несозданных «1 серия» не пишем) */
+    const serN = (p.series || []).filter(s => ws.some(w => w.series === s.id)).length;
+    const items = [p.since ? `${pfVerb(p)} с <b>${esc(p.since)}</b>` : '', ws.length ? `<b>${ws.length}</b> ${plural(ws.length, 'работа', 'работы', 'работ')}` : '', serN ? `<b>${serN}</b> ${plural(serN, 'серия', 'серии', 'серий')}` : '', evs.length ? `<b>${evs.length}</b> ${plural(evs.length, 'эфир', 'эфира', 'эфиров')}` : '', p.resp ? `Отвечает за <b>~${p.resp} ${plural(p.resp, 'час', 'часа', 'часов')}</b>` : ''].filter(Boolean);
     facts = rt || items.length ? `<ul class="pf-facts">${rt ? `<li><a class="pf-rate" href="${withQ({ tab: 'reviews' }, r)}">${ic('star', 16, 'fill')}<b>${rt[0].toFixed(1).replace('.', ',')}</b><span>· ${rt[1]} ${plural(rt[1], 'отзыв', 'отзыва', 'отзывов')} купивших</span></a></li>` : ''}${items.map(f => `<li>${f}</li>`).join('')}</ul>` : '';
   }
   const head = `<header class="pf-head${self ? ' me' : ''}"><div class="pf-hg"><div class="pf-av">${avatar(p, 'xl sq')}</div>
@@ -11946,7 +11972,7 @@ ROUTES['profile'] = () => {
     ${fillBlock('pf')}
     <div class="pf-fields">${PF_FIELDS.map(([k, t]) => pfFieldCard(k, k === 'open' ? byG('Открыт к', 'Открыта к') : t)).join('')}</div>
     <section class="card pf-works-sum" aria-labelledby="pf-w-h"><div class="pf-field-h"><h2 class="h4" id="pf-w-h">Работы</h2><a class="btn btn-quiet btn-sm" href="#/profile/works">${ic('edit', 16)} Серии и порядок</a></div>
-      <p class="sm t2">${(me.works || []).length} ${plural((me.works || []).length, 'работа', 'работы', 'работ')} · ${(me.series || []).length} ${plural((me.series || []).length, 'серия', 'серии', 'серий')} · лимит тарифа: ${isFinite(lim('works')) ? lim('works') + ' работ, ' + lim('series') + ' серии' : 'без лимита'}</p>
+      <p class="sm t2">${(me.works || []).length} ${plural((me.works || []).length, 'работа', 'работы', 'работ')}${(me.series || []).length ? ` · ${me.series.length} ${plural(me.series.length, 'серия', 'серии', 'серий')}` : ''} · лимит тарифа: ${isFinite(lim('works')) ? lim('works') + ' работ, ' + lim('series') + ' серии' : 'без лимита'}</p>
       ${(me.works || []).length ? `<div class="pf-works-strip">${me.works.slice().sort((a, b) => (a.order || 0) - (b.order || 0)).slice(0, 8).map(w => `<span class="ph">${imgTag(w.img, '')}</span>`).join('')}</div>` : pfAddBtns('', { sm: true })}</section>
     <section class="card" aria-labelledby="pf-n-h"><h2 class="h4" id="pf-n-h">Ник</h2><p class="sm t3" style="margin:4px 0 10px">${me.nick ? `Адрес профиля: ${esc(CONFIG.base)}/<b>${esc(nick)}</b>` : 'Придумай ник — это адрес твоего профиля'}</p>
       <div class="pf-nick-row"><span class="pf-pre">${esc(CONFIG.base)}/</span><input class="input" id="pf-nick" value="${esc(me.nick || '')}" placeholder="" autocomplete="off" autocapitalize="off" spellcheck="false" data-change="prof-nick" aria-describedby="pf-nick-st"><span class="sm pf-nick-st ${nickSt === 'busy' || nickSt === 'bad' ? 'err-t' : nickSt === 'ok' ? 'ok-ic' : 't3'}" id="pf-nick-st">${nickSt === 'ok' ? ic('check', 14) + ' Свободен' : nickSt === 'busy' ? 'Занят' : nickSt === 'bad' ? 'Латиница, цифры и дефис, 3–20 знаков' : ''}</span></div></section>
@@ -12039,38 +12065,6 @@ CHANGE['work-photoby'] = el => { const w = pfWorkById(el.getAttribute('data-arg'
 CHANGE['work-consent'] = el => { const w = pfWorkById(el.getAttribute('data-arg')); if (w) { w.consent = !!el.checked; save(); rerender(); } };
 ACT['work-move'] = arg => { const [id, dir] = arg.split('|'), ws = ME().works.slice().sort((a, b) => (a.order || 0) - (b.order || 0)), i = ws.findIndex(w => w.id === id), j = i + (+dir); if (i < 0 || j < 0 || j >= ws.length) return; const t = ws[i]; ws[i] = ws[j]; ws[j] = t; ws.forEach((w, k) => { w.order = k; }); save(); rerender(); };
 ACT['work-del'] = id => { const me = ME(); me.works = me.works.filter(w => w.id !== id); save(); rerender(); toast('Работа убрана из профиля', 'info'); };
-/* кадры для выбора: сначала своей профессии (у новичка без профессии — все подряд) */
-function pfWorkPool(exclude) {
-  const prof = ME().prof.role || '';
-  const pref = { photo: ['wed', 'por'], video: ['vid'], reels: ['vid'], mua: ['mua', 'por'], stylist: ['mua', 'por'], model: ['por', 'wed'], org: ['dec', 'wed'], decor: ['dec'], host: ['wed', 'dec'] }[prof] || ['wed', 'por', 'mua', 'vid', 'dec'];
-  return imgNames('').filter(n => /^(wed|mua|vid|dec|por)\d/.test(n) && exclude.indexOf(n) < 0).sort((a, b) => (pref.findIndex(p => a.indexOf(p) === 0) + 1 || 9) - (pref.findIndex(p => b.indexOf(p) === 0) + 1 || 9));
-}
-/* «Взять кадры из набора» (A19, круг 2): выбор кадров и серия — «Новые работы» (по умолчанию), своя серия или новая; mode 'fill' — выбор для
-   автозаполнения (FL().worksPick, без серии: работы встанут первыми при «Заполнить»), 'ob' — знакомство (без выбора серии).
-   Свои фото — «Свои файлы» в том же окне. На телефоне низ окна с «Добавить N» прилипает к краю — видно без прокрутки */
-function pfWaddHtml() {
-  const me = ME(), W = UI.wadd, fill = W.mode === 'fill';
-  const pool = pfWorkPool(me.works.map(w => w.img)).slice(0, 18);
-  const hasNew = me.series.some(x => x.title === 'Новые работы'), canNew = me.series.length < lim('series');
-  const opts = (hasNew || canNew ? [['new', 'Новые работы']] : []).concat(me.series.filter(x => x.title !== 'Новые работы').map(x => [x.id, x.title])).concat(canNew ? [['__new', 'Новая серия…']] : []).concat([['', 'Без серии']]);
-  const ser = fill || W.mode === 'ob' || !me.series.length ? '' : `<div class="field pf-wadd-ser"><span class="flabel" id="wadd-ser-l">В серию</span>${csel('work-add-series', null, W.series, opts, { label: 'В серию', labelId: 'wadd-ser-l' })}${W.series === '__new' ? `<input class="input" id="wadd-title" data-bind="ui.wadd.title" value="${esc(W.title || '')}" placeholder="Название серии" maxlength="40" aria-label="Название новой серии">` : ''}${canNew || hasNew ? '' : `<span class="hint">Новые серии — в PRO; новые работы встанут первыми</span>`}</div>`;
-  const n = W.pick.length;
-  return `<h2 id="mh">Кадры из набора</h2><p class="m-sub">Отметь кадры — они встанут первыми. Свои фото — кнопкой «Свои файлы»</p>
-    <div class="pf-photos pf-wpick">${pool.map(x => { const on = W.pick.indexOf(x) >= 0; return `<button type="button" class="pf-photo" data-act="work-pick" data-arg="${esc(x)}" aria-pressed="${on}" aria-label="Кадр ${esc(x)}">${imgTag(x, '')}<span class="pf-photo-ck">${ic('check', 14)}</span></button>`; }).join('')}</div>
-    ${ser}
-    <p class="note-line" style="margin-top:12px">${ic('shield', 18)}<span>Проверим при загрузке: дети, чужие водяные знаки, логотипы соцсетей. У людей на фото должно быть согласие, укажи автора фото, если снимал${byG('', 'а')} не ты</span></p>
-    <div class="m-foot pf-wadd-f"><button type="button" class="btn btn-primary" data-act="work-add-ok" id="wadd-ok" data-qa="work-add-ok" ${n ? '' : 'aria-disabled="true" data-why="Выбери хотя бы один кадр"'}>${pfWaddT(W)}</button><label class="btn btn-secondary pf-file">${ic('upload', 18)} Свои файлы<input type="file" accept="image/*" multiple class="sr" data-change="work-files" data-arg="${esc(W.mode || '')}"></label><button type="button" class="btn btn-ghost" data-act="close-modal">Отмена</button></div>`;
-}
-const pfWaddT = W => { const n = W.pick.length; return W.mode === 'fill' ? (n ? `Выбрать ${n}` : 'Выбрать') : (n ? `Добавить ${n}` : 'Добавить'); };
-ACT['work-add'] = mode => {
-  const me = ME(), fill = mode === 'fill';
-  if (me.works.length >= lim('works')) { paywall('works'); return; }
-  const r = route(), s0 = r.parts.join('/') === 'profile/works' && r.q.get('s') && r.q.get('s') !== 'all' ? r.q.get('s') : '';
-  UI.wadd = { pick: fill ? ((FL().worksPick || []).slice()) : [], mode: fill ? 'fill' : mode === 'ob' ? 'ob' : '', series: s0 || (me.series.some(x => x.title === 'Новые работы') || me.series.length < lim('series') ? 'new' : ''), title: '' };
-  openModal(pfWaddHtml(), { wide: true });
-};
-CHANGE['work-add-series'] = el => { if (!UI.wadd) return; UI.wadd.series = el.value; openModal(pfWaddHtml(), { wide: true }); if (el.value === '__new') { const i = $('#wadd-title'); if (i) i.focus(); } };
-ACT['work-pick'] = (n, el) => { const W = UI.wadd, p = W.pick, i = p.indexOf(n); if (i >= 0) p.splice(i, 1); else p.push(n); el.setAttribute('aria-pressed', i < 0); const ok = $('#wadd-ok'); if (ok) { if (p.length) { ok.removeAttribute('aria-disabled'); ok.removeAttribute('data-why'); } else { ok.setAttribute('aria-disabled', 'true'); ok.setAttribute('data-why', 'Выбери хотя бы один кадр'); } ok.textContent = pfWaddT(W); } };
 /* после добавления: в «Работах» — подсветка и прокрутка к первой новой; в автозаполнении и знакомстве — на месте; иначе — в «Работы» */
 function pfWorksAdded(add) {
   UI.pwNew = add.map(w => w.id); UI.pwNewScroll = true;
@@ -12081,12 +12075,6 @@ function pfWorksAdded(add) {
   else go('#/profile/works');
   toast(`Добавили ${add.length} ${plural(add.length, 'работу', 'работы', 'работ')} — ${pfCons().photos ? 'они встали первыми' : 'отметь согласие людей на фото'}`, 'upload');
 }
-ACT['work-add-ok'] = () => {
-  const W = UI.wadd, pick = (W && W.pick) || []; if (!pick.length) return;
-  if (W.mode === 'fill') { const F = FL(); F.worksPick = pick.slice(); F.works = pick.length; closeModal(true); rerender(); toast(`Выбрано ${pick.length} ${plural(pick.length, 'кадр', 'кадра', 'кадров')} — нажми «Заполнить»`, 'camera'); return; }
-  const add = pfAddWorks(pick, W.mode === 'ob' ? 'new' : W.series, W.title);
-  closeModal(true); pfWorksAdded(add);
-};
 /* свои файлы (input type=file, multiple): превью через object URL, работы — первыми; к автозаполнению — в выбранные кадры */
 CHANGE['work-files'] = el => {
   const me = ME(), mode = el.getAttribute('data-arg') || '', files = imgFilesOf(el);
@@ -12094,10 +12082,11 @@ CHANGE['work-files'] = el => {
   const room = lim('works') - me.works.length;
   if (room <= 0) { paywall('works'); return; }
   const names = files.slice(0, room).map(imgAddFile).filter(Boolean); el.value = '';
-  if (modalOpen()) closeModal(true);
   if (!names.length) { toast('Не получилось открыть файлы — попробуй JPG или PNG', 'info'); return; }
   if (mode === 'fill') { const F = FL(); F.worksPick = (F.worksPick || []).concat(names); F.works = F.worksPick.length; rerender(); toast(`${names.length} ${plural(names.length, 'фото', 'фото', 'фото')} — нажми «Заполнить», они встанут первыми`, 'camera'); return; }
-  pfWorksAdded(pfAddWorks(names, mode === 'ob' ? 'new' : (UI.wadd && UI.wadd.mode === mode ? UI.wadd.series : 'new')));
+  /* в «Работах» с открытой серией (?s=) — в неё, иначе «Новые работы» (или без серии, если серий нет) */
+  const r = route(), s0 = mode !== 'ob' && r.path === 'profile/works' && r.q.get('s') && r.q.get('s') !== 'all' ? r.q.get('s') : 'new';
+  pfWorksAdded(pfAddWorks(names, s0));
   if (files.length > room) paywall('works');
 };
 /* новые работы: прокрутить к первой, подсветка — до ухода со страницы (A19) */
