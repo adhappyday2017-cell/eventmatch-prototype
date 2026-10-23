@@ -2438,13 +2438,6 @@ a.lv-hostc>.ic{color:var(--ink-3)}
 .lv-part{display:flex;gap:8px;align-items:flex-start;margin-top:10px;padding:10px 14px;border-radius:var(--r-sm);background:var(--paper-2);color:var(--ink-2)}
 .lv-part .ic{flex:none;margin-top:2px}
 /* «Твои записи эфиров» у автора */
-.lv-myrec{margin-top:16px;padding:16px 18px;border-radius:var(--r-md);background:var(--paper-2)}
-.lv-myrec-l{display:grid;gap:10px;margin-top:10px}
-.lv-myrec-l>li{display:grid;grid-template-columns:88px minmax(0,1fr) auto;gap:14px;align-items:center}
-.lv-myrec-c .lv-cov{display:block;width:88px;aspect-ratio:4/3;border-radius:var(--r-sm);overflow:hidden}
-.lv-myrec-c .lv-tcov-t,.lv-myrec-c .lv-tcov-h{display:none}
-.lv-myrec-t{display:flex;flex-direction:column;gap:2px;min-width:0}
-@media (hover:hover){ .lv-myrec-t a.b:hover{text-decoration:underline;text-underline-offset:3px} }
 /* заявка на проверке: изменить и отозвать */
 .lv-revb{margin-top:12px}
 /* форма заявки: «проверь», обложка из своих работ, материалы */
@@ -2497,10 +2490,6 @@ a.lv-hostc>.ic{color:var(--ink-3)}
   .lv-shg{grid-template-columns:minmax(0,1fr)}
   .lv-storyw{max-width:240px}
   .lv-pf2{grid-template-columns:minmax(0,1fr)}
-  .lv-myrec{padding:14px}
-  .lv-myrec-l>li{grid-template-columns:64px minmax(0,1fr)}
-  .lv-myrec-c .lv-cov{width:64px}
-  .lv-myrec-l .btn{grid-column:1 / -1;justify-self:start}
   .lv-sumr{align-items:stretch}
   .lv-pastb{width:100%}
   .lv-rows>div{grid-template-columns:88px minmax(0,1fr)}
@@ -12171,7 +12160,6 @@ function lvSchedule(r) {
   const search = `<div class="lv-qw${q ? ' has' : ''}"><span class="lv-qi" aria-hidden="true">${ic('search', 18)}</span><input type="search" class="input lv-q" id="lv-q" data-bind="ui.lvQ" value="${esc(q)}" placeholder="Найти эфир: тема или ведущий" aria-label="Найти эфир" autocomplete="off" enterkeyhint="search">${q ? `<button type="button" class="iconbtn lv-qx" data-act="lv-q-clear" aria-label="Очистить поиск">${ic('x', 18)}</button>` : ''}</div>`;
   const tools = `<div class="cal4-bar lv-bar"><div class="lv-filt">${search}<div class="fdds">${fddBtn('lv', 'topics')}${fddBtn('lv', 'fmts')}</div></div>${calNav('lv', st)}${calSeg('lv', st)}</div>
     <div class="cal4-sub"><div class="lv-minesw"><span id="lv-mine-l">${byG('Куда я записан', 'Куда я записана')}</span>${switchHtml('lv-mine', null, st.mine, 'lv-mine-l')}</div><a class="btn btn-secondary btn-sm lv-propb" href="#/lives/propose">${ic('plus', 16)} Предложить эфир</a></div>`;
-  const intro = `<p class="sm t2 cal4-intro">Расписание эфиров сообщества. Твои записи — в разделе <a class="link" href="#/calendar">«Календарь»</a> здесь, в EventMatch</p>`;
   const wn = lvWeekN(), week = !nF ? `<p class="sm t2 lv-week">На этой неделе — ${wn ? `${wn} ${plural(wn, 'эфир', 'эфира', 'эфиров')}` : 'эфиров нет'}</p>` : '';
   /* прошедшие в «Списке» — заметная кнопка обычного размера, а не мелкая ссылка (UX-тест М54) */
   const pastBtn = list && P.pastAll ? `<button type="button" class="btn btn-quiet lv-pastb" data-act="lv-past" aria-pressed="${!!UI.lvPast}">${ic('clock', 18)} ${UI.lvPast ? `Скрыть прошедшие · ${P.pastAll}` : `Показать прошедшие · ${P.pastAll}`}</button>` : '';
@@ -12180,18 +12168,9 @@ function lvSchedule(r) {
   const part = found.part ? `<p class="sm t2 lv-part" role="status">${ic('info', 16)}<span>Частично совпадает с «${esc(q.trim())}» — эфиров, где есть все слова, нет</span></p>` : '';
   const emptyMonth = `<div class="muted-box cal4-empty"><b>${nF ? (lvQ() ? `По запросу «${esc(q.trim())}» ничего не нашли` : 'Ничего не нашли по фильтрам') : `В ${CAL_MPRE[+st.m.slice(5) - 1]} эфиров пока нет`}</b><p class="sm t2" style="margin-top:4px">${nF ? (lvQ() ? 'Проверь написание, попробуй другой месяц или сбрось фильтры.' : 'Попробуй другую тему или сбрось фильтры.') : st.mine ? `Выключи «${byG('Куда я записан', 'Куда я записана')}» и выбери эфир — запись в один клик.` : 'Расписание появляется за месяц-полтора до начала.'}</p></div>`;
   const body = calRender({ key: 'lv', st, items, row: it => evCard(it.ev), emptyMonth, pastToggle: true, pastLine: true });
-  return clubShell('Эфиры', `<section class="cal4 lv-sched" aria-label="Расписание эфиров"><h2 class="sr">Расписание</h2>${tools}${intro}${nF ? '' : lvMyRecs()}${week}${sum}${part}${body}</section>${calPanel('lv', r, items)}`);
+  return clubShell('Эфиры', `<section class="cal4 lv-sched" aria-label="Расписание эфиров"><h2 class="sr">Расписание</h2>${tools}${week}${sum}${part}${body}</section>${calPanel('lv', r, items)}`);
 }
-/* у автора над расписанием — «Твои записи эфиров»: до 3 своих прошедших эфиров с готовой записью и «Собрать курс из записи» (UX-тест М54) */
-function lvMyRecs() {
-  if (!isAuthorNow()) return '';
-  const recs = lvAll().filter(e => lvIsMine(e) && lvState(e) === 'past' && lvRecState(e) === 'ready').sort((a, b) => (b.d + b.t).localeCompare(a.d + a.t)).slice(0, 3);
-  if (!recs.length) return '';
-  return `<section class="lv-myrec" aria-labelledby="lv-myrec-h"><h2 class="h4" id="lv-myrec-h">Твои записи эфиров</h2><ul class="lv-myrec-l">${recs.map(e => {
-    const dup = typeof bdDups === 'function' ? bdDups(e.id)[0] : null;
-    return `<li><a class="lv-myrec-c" href="#/lives/${e.id}" tabindex="-1" aria-hidden="true">${lvCover(e)}</a><span class="lv-myrec-t"><a class="b" href="#/lives/${e.id}">${esc(e.title)}</a><span class="sm t2">${esc(dDay(lvStart(e)))} · запись ${lvRecLabel(e)}${dup ? ` · из записи ${dup.live ? 'продаётся' : 'собран'} ${esc(crsFmtShort(dup.c).toLowerCase())}` : ''}</span></span>
-      <a class="btn btn-secondary btn-sm" href="#/author/builder?from=${e.id}" data-qa="builder-from-rec">${ic('sparkle', 16)} Собрать курс из записи</a></li>`; }).join('')}</ul></section>`;
-}
+/* записи своих эфиров и «Собрать курс из записи» — в кабинете автора, раздел «Эфиры» (основатель 25.10: на странице эфиров ничего не должно отвлекать) */
 /* поиск перерисовывает список на месте: фокус и курсор переживают rerender (ядро) */
 INP.push(path => { if (path === 'ui.lvQ' && route().parts[0] === 'lives' && !route().parts[1]) rerender(); });
 
