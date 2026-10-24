@@ -3021,7 +3021,7 @@ a.lv-hostc>.ic{color:var(--ink-3)}
 .pp-fun li{display:grid;gap:4px}
 .pp-conv{display:inline-flex;align-items:center;gap:6px;font-size:14px;line-height:20px;color:var(--ink-3);padding-left:6px}
 .pp-frow{position:relative;display:flex;align-items:center;gap:12px;min-height:48px;padding:0 16px;border-radius:10px;background:var(--tint);overflow:hidden}
-.pp-fb{position:absolute;left:0;top:0;bottom:0;border-radius:10px;background:var(--paper-2)}
+.pp-fb{position:absolute;left:0;top:0;bottom:0;background:var(--paper-2)}  /* без своего скругления: левые углы скругляет строка (overflow:hidden), правый край ровный — узкая полоска читается как доля, а не капсула */
 .pp-fb.last{background:var(--sel)}
 .pp-ft{position:relative;flex:1;min-width:0;font-weight:500;font-size:15px;line-height:20px}
 .pp-fn{position:relative;font-size:20px;line-height:28px}
@@ -14453,7 +14453,8 @@ function ppFunnel(pp) {
   const inv = pp.invited, reg = inv.length, prof = inv.filter(x => ppPub(x)).length, act = inv.filter(ppActive).length, clicks = Math.max(pp.clicks || 0, reg);
   const pc = (a, b) => b ? String(Math.round(a / b * 1000) / 10).replace('.', ',') + '%' : '0%';
   const rows = [['Перешли по ссылке', clicks, ''], ['Зарегистрировались', reg, `${pc(reg, clicks)} от перешедших`], ['Профиль готов', prof, `${pc(prof, reg)} от зарегистрированных`], ['Купили, продали или оформили PRO', act, `${pc(act, prof)} от готовых профилей`]];
-  const w = v => clicks ? Math.max(18, Math.round(Math.sqrt(v / clicks) * 100)) : 18;
+  /* ширина полоски — прямо пропорционально первой строке (как fnBar в аналитике автора); не ноль — хотя бы 1,5 %, чтобы было видно */
+  const w = v => clicks ? Math.max(v ? 1.5 : 0, Math.min(100, v / clicks * 100)).toFixed(1) : 0;
   return `<section class="card pp-card pp-func" aria-labelledby="pp-fun-h"><div class="sec-head"><h2 class="d3" id="pp-fun-h">Воронка</h2><span class="sm t3">за всё время</span></div>
     <ol class="pp-fun">${rows.map(([t, v, cv], i) => `<li>${cv ? `<span class="pp-conv">${ic('down', 14)} ${esc(cv)}</span>` : ''}<div class="pp-frow"><span class="pp-fb ${i === 3 ? 'last' : ''}" style="width:${w(v)}%"></span><span class="pp-ft">${esc(t)}</span><b class="num pp-fn">${fmtN(v)}</b></div></li>`).join('')}</ol></section>`;
 }
