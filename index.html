@@ -3072,9 +3072,9 @@ a.lv-hostc>.ic{color:var(--ink-3)}
 .ob-note{margin-top:14px}
 
 /* ---------- шаг 3: Кодекс коллег — правила по одному: название строкой, пояснение строкой ниже ---------- */
-.ob-rules{display:grid;gap:5px;margin-top:16px}
-.ob-rule{display:flex;align-items:center;gap:14px;width:100%;padding:6px 16px;border-radius:var(--r-md);background:var(--white);border:1px solid var(--line-2);text-align:left;font-size:15px;line-height:21px;color:var(--ink-2);transition:border-color .15s,background-color .15s}
-.ob-rule b{display:block;font-size:16px;line-height:22px;font-weight:600;color:var(--ink)}
+.ob-rules{display:grid;gap:4px;margin-top:14px}
+.ob-rule{display:flex;align-items:center;gap:14px;width:100%;padding:4px 16px;border-radius:var(--r-md);background:var(--white);border:1px solid var(--line-2);text-align:left;font-size:15px;line-height:20px;color:var(--ink-2);transition:border-color .15s,background-color .15s}
+.ob-rule b{display:block;font-size:16px;line-height:20px;font-weight:600;color:var(--ink)}
 .ob-rs{display:block}
 .ob-rule .grow{flex:1 1 auto;min-width:0}
 .ob-rule:hover{border-color:var(--ink-3)}
@@ -3230,6 +3230,23 @@ a.lv-hostc>.ic{color:var(--ink-3)}
 @media (max-width: 760px), (pointer: coarse){
   .ob-logo{position:relative}
   .ob-logo::after{content:"";position:absolute;left:50%;top:50%;width:max(100%,44px);height:max(100%,44px);transform:translate(-50%,-50%)}
+}
+
+/* основатель 25.10: «Кодекс коллег» без прокрутки — правила плотнее (выше), а в невысоком окне компьютера заголовки шагов поднимаются.
+   Телефон не трогаем: там окно на весь экран и прокрутка нормальна */
+@media (min-width: 761px) and (pointer: fine) and (max-height: 800px){
+  .ob-top{min-height:56px;padding-top:6px}
+  .ob-h{margin-top:6px}
+  .ob-lead{margin-top:6px}
+  .ob-sub{margin-top:18px}
+  .ob-rules{margin-top:10px}
+  .ob-rule{padding:3px 14px}
+  .ob-cnt{margin-top:8px}
+  .ob-nxl{gap:6px;margin-top:8px}
+  .ob-nx{padding:8px 14px}
+}
+@media (min-width: 761px) and (pointer: fine) and (max-height: 700px){
+  .ob-rule{padding:2px 14px}
 }
 
 
@@ -4046,7 +4063,7 @@ button.pf-bt{cursor:pointer;width:100%}
 .fl-fields{margin-top:6px}
 .fl-check{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:0 8px;min-height:22px;border-radius:6px;background:var(--paper-2);color:var(--heart);font-size:14px;font-weight:500}
 .fl-q{margin-top:18px;display:grid;gap:14px;padding-top:18px;border-top:1px solid var(--line)}
-.fl-works{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.fl-works{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-bottom:16px}  /* основатель 25.10: «Добавить фото» не прилипает к миниатюрам */
 .fl-w{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden}
 .fl-w img{width:100%;height:100%;object-fit:cover}
 .fl-w-x{position:absolute;right:4px;top:4px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--ink);display:grid;place-items:center}
@@ -5709,7 +5726,7 @@ const OB = {
     { n: 1, t: 'Привет, коллега', lead: 'Зачем мы здесь и три пути — учиться у практиков, находить коллег, продавать свой опыт' },
     /* UX-тест 23.10 (A17, М23): «Никаких заказов» читалось как «работы не будет» */
     /* 25.10: ретушёры и монтажёры — тоже коллеги: помогают после съёмки, а не работают на заказ */
-    { n: 2, t: 'Кто здесь', lead: 'Здесь только исполнители — те, кто делает события, и те, кто помогает им после съёмки: ретушёры и монтажёры. Здесь не биржа заказов: коллеги зовут друг друга — вторым фотографом, на замену, на обработку кадров — через «Запросы»' },
+    { n: 2, t: 'Кто здесь', lead: 'Здесь только исполнители: те, кто делает события, и те, кто помогает после съёмки. Собирай команду под свою задачу. Напиши умному поиску обычными словами, например «второй фотограф на субботу в Ростове», и он подберёт коллег. Нужно срочно? Размести запрос, коллеги откликнутся сами' },
     { n: 3, t: 'Кодекс коллег', lead: CODE_LEAD },
     /* круг 2: профиль собирается один раз и публикуется прямо здесь */
     { n: 4, t: 'Твой профиль', lead: 'Соберём профиль один раз и сразу опубликуем — коллеги найдут тебя по профессии и городу. Остальное допишешь, когда захочешь' },
@@ -5726,7 +5743,7 @@ const OB = {
   next: 'Дальше',
 
   /* шаг 1 — абзац и три пути (23.10: без видео, без «Рады, что ты с нами» и подписи команды) */
-  hello: 'Мы делаем EventMatch для тех, кто работает на событиях: фотографов, видеографов, ведущих, визажистов, ретушёров и монтажёров — всех, без кого не случается праздник. Здесь не биржа заказов и нет гонки за ценой: коллеги учат друг друга, зовут друг друга на съёмки и на обработку.',
+  hello: 'Мы делаем EventMatch для всех, кто работает на событиях: фотографов, видеографов, ведущих, визажистов, организаторов, ретушёров и монтажёров. Здесь растут в профессии: учатся у сильных коллег, получают работу от тех, кто их знает, и зарабатывают на своём опыте. Чем лучше отзывы коллег, тем выше ты в поиске.',
   /* шаг 1: что без подписки и сколько берём (A17, М23); круг 2 — запросы с лимитом, как в окне запроса, и один раз */
   fair: `Профиль, поиск, сообщения и ${LIMITS.free.boardActive} ${plural(LIMITS.free.boardActive, 'активный запрос', 'активных запроса', 'активных запросов')} — без подписки. С продаж обучения — ${CONFIG.fee} %, и всё. Место в поиске не продаётся`,
   pathsLead: 'Три пути — можно идти по всем сразу:',
@@ -5802,11 +5819,11 @@ const OB = {
   needParts: { name: 'напиши имя и фамилию', role: 'выбери профессию', city: 'выбери город', nick: 'займи свободный ник', works: 'добавь хотя бы одну работу', cover: 'добавь обложку', cons: 'отметь оба согласия', data: 'отметь согласие на обработку данных', photos: 'подтверди согласие людей на фото' },
 
   /* шаг 5 — ты в сообществе */
-  warm: '{name}, добро пожаловать! Здесь коллеги делятся тем, что работает, зовут друг друга на съёмки и учат тому, что умеют сами. Начни с малого — остальное сложится.',
-  warmAgain: '{name}, здесь коллеги делятся тем, что работает, зовут друг друга на съёмки и учат тому, что умеют сами.',
+  warm: '{name}, добро пожаловать! С каждым эфиром, курсом и совместным проектом ты растёшь в профессии. Отзывы коллег поднимают тебя в поиске, а свой опыт со временем можно продавать.',
+  warmAgain: '{name}, с каждым эфиром, курсом и совместным проектом ты растёшь в профессии. Отзывы коллег поднимают тебя в поиске, а свой опыт можно продавать.',
   /* без имени (выбрал «Заполню позже») */
-  warm0: 'Добро пожаловать! Здесь коллеги делятся тем, что работает, зовут друг друга на съёмки и учат тому, что умеют сами. Начни с малого — остальное сложится.',
-  warmAgain0: 'Здесь коллеги делятся тем, что работает, зовут друг друга на съёмки и учат тому, что умеют сами.',
+  warm0: 'Добро пожаловать! С каждым эфиром, курсом и совместным проектом ты растёшь в профессии. Отзывы коллег поднимают тебя в поиске, а свой опыт со временем можно продавать.',
+  warmAgain0: 'С каждым эфиром, курсом и совместным проектом ты растёшь в профессии. Отзывы коллег поднимают тебя в поиске, а свой опыт можно продавать.',
   nextH: 'Что дальше',
   liveT: 'Записаться на ближайший эфир',
   liveTReg: ['Ты записан на ближайший эфир', 'Ты записана на ближайший эфир'],
