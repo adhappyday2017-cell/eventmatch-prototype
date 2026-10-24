@@ -2428,6 +2428,9 @@ a.cpi:hover{background:var(--paper-2)}
 .lv-tb1{display:flex;align-items:center;justify-content:space-between;gap:12px 16px}
 .lv-tb2{display:flex;align-items:center;flex-wrap:wrap;gap:10px 24px}
 .lv-tb2 .cal4-seg{margin-left:auto}
+/* поиск по всем датам: строка «Нашли N эфиров» вместо месяца; «Прошли» — отдельным заголовком после будущих */
+.lv-found{margin:0}
+.lv-found-past{margin:28px 0 4px;color:var(--ink-2)}
 .lv-propb{flex:none}
 .lv-filt{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;min-width:0;flex:1 1 auto}
 .lv-filt .fdds{flex:none}
@@ -13297,8 +13300,26 @@ function lvSchedule(r) {
   const sum = st.v !== 'half' && (nF || (list && P.pastAll)) ? `<div class="lv-sumr"><p class="sm t3 cal4-sum" aria-live="polite">${ahead ? `Впереди ${ahead} ${plural(ahead, 'эфир', 'эфира', 'эфиров')}` : 'Впереди эфиров нет'}${pastPart}${nF ? ` · <button type="button" class="link sm" data-act="lv-reset">Сбросить фильтры</button>` : ''}</p>${pastBtn}</div>` : '';
   const part = found.part ? `<p class="sm t2 lv-part" role="status">${ic('info', 16)}<span>Частично совпадает с «${esc(q.trim())}» — эфиров, где есть все слова, нет</span></p>` : '';
   const emptyMonth = `<div class="muted-box cal4-empty"><b>${nF ? (lvQ() ? `По запросу «${esc(q.trim())}» ничего не нашли` : 'Ничего не нашли по фильтрам') : `В ${CAL_MPRE[+st.m.slice(5) - 1]} эфиров пока нет`}</b><p class="sm t2" style="margin-top:4px">${nF ? (lvQ() ? 'Проверь написание, попробуй другой месяц или сбрось фильтры.' : 'Попробуй другую тему или сбрось фильтры.') : st.mine ? `Выключи «${byG('Куда я записан', 'Куда я записана')}» и выбери эфир — запись в один клик.` : 'Расписание появляется за месяц-полтора до начала.'}</p></div>`;
+  /* с текстом в поиске — все найденные эфиры за любые даты, а не только выбранный месяц (основатель 25.10: «сафин» не находился —
+     его эфир в марте, а показывался октябрь); месяц и вид на это время скрыты, очистил строку — снова календарь */
+  if (lvQ()) {
+    const n = items.length, tk = ymd(NOW()), up = items.filter(it => it.day >= tk).length;
+    const tools2 = `<div class="lv-tb"><div class="lv-tb1"><div class="lv-filt">${search}<div class="fdds">${fddBtn('lv', 'topics')}${fddBtn('lv', 'fmts')}</div></div><a class="btn btn-secondary lv-propb" href="#/lives/propose">${ic('plus', 16)} Предложить эфир</a></div>
+    <div class="lv-tb2"><p class="sm t2 lv-found" aria-live="polite">${n ? `Нашли ${n} ${plural(n, 'эфир', 'эфира', 'эфиров')}${up && up < n ? ` · впереди ${up}` : ''}` : 'Ничего не нашли'} · <button type="button" class="link sm" data-act="lv-reset">Сбросить фильтры</button></p><div class="lv-minesw"><span id="lv-mine-l">${byG('Куда я записан', 'Куда я записана')}</span>${switchHtml('lv-mine', null, st.mine, 'lv-mine-l')}</div></div></div>`;
+    return clubShell('Эфиры', `<section class="cal4 lv-sched" aria-label="Расписание эфиров"><h2 class="sr">Расписание</h2>${tools2}${part}${lvFoundAll(items, q)}</section>${calPanel('lv', r, items)}`);
+  }
   const body = calRender({ key: 'lv', st, items, row: it => evCard(it.ev), emptyMonth, pastToggle: true, pastLine: true });
   return clubShell('Эфиры', `<section class="cal4 lv-sched" aria-label="Расписание эфиров"><h2 class="sr">Расписание</h2>${tools}${week}${sum}${part}${body}</section>${calPanel('lv', r, items)}`);
+}
+/* результаты поиска по всем датам: сначала впереди по порядку, потом «Прошли» от свежих к старым; год в дате — если не текущий */
+function lvFoundAll(items, q) {
+  if (!items.length) return `<div class="muted-box cal4-empty"><b>По запросу «${esc(q.trim())}» ничего не нашли</b><p class="sm t2" style="margin-top:4px">Проверь написание или сбрось фильтры.</p></div>`;
+  const tk = ymd(NOW()), y0 = NOW().getFullYear();
+  const up = items.filter(it => it.day >= tk).sort((a, b) => calSortK(a).localeCompare(calSortK(b)));
+  const past = items.filter(it => it.day < tk).sort((a, b) => calSortK(b).localeCompare(calSortK(a)));
+  const days = list => { const g = []; list.forEach(it => { let x = g.find(z => z.k === it.day); if (!x) { x = { k: it.day, d: D(it.day), list: [] }; g.push(x); } x.list.push(it); }); return g; };
+  const sec = g => `<section class="cal4-day${g.k === tk ? ' is-today' : ''}${g.k < tk ? ' is-past' : ''}" aria-label="${esc(dFull(g.d))}"><h2 class="cal4-dh">${esc(dFull(g.d))}${g.d.getFullYear() !== y0 ? ' ' + g.d.getFullYear() : ''}${g.k === tk ? ' · сегодня' : ''}</h2><div class="lv-cards">${g.list.map(it => evCard(it.ev)).join('')}</div></section>`;
+  return `<div class="cal4-list lv-found-list" id="cal4-anchor">${days(up).map(sec).join('')}${past.length ? `<h2 class="h4 lv-found-past">Прошли · ${past.length}</h2>${days(past).map(sec).join('')}` : ''}</div>`;
 }
 /* записи своих эфиров и «Собрать курс из записи» — в кабинете автора, раздел «Эфиры» (основатель 25.10: на странице эфиров ничего не должно отвлекать) */
 /* поиск перерисовывает список на месте: фокус и курсор переживают rerender (ядро) */
