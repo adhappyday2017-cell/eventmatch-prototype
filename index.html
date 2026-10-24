@@ -1361,6 +1361,13 @@ a.uc-au,.uc-f,.uc-fav,.uc-rh-a,.uc-rh-t a{position:relative;z-index:2}
 .uc-fav.on-ph.on{color:var(--heart)}
 @media (hover:hover){ .uc-fav.on-ph:hover{color:#fff;opacity:.85} .uc-fav.on-ph.on:hover{color:var(--heart);opacity:.85} }
 .uc-fav.on,.uc-fav[aria-pressed="true"]{color:var(--heart)}
+/* сердечко на фото: с мышью — только при наведении на карточку (сетка из одинаковых сердец рябит), уже сохранённое видно всегда;
+   на телефоне и планшете наведения нет — сердечко на месте всё время */
+@media (hover:hover) and (pointer:fine){
+  .ucard .uc-fav.on-ph:not(.on){opacity:0}
+  .ucard:hover .uc-fav.on-ph,.ucard:focus-within .uc-fav.on-ph,.ucard .uc-fav.on-ph:focus-visible{opacity:1}
+  .ucard:hover .uc-fav.on-ph:hover{opacity:.85}
+}
 @media (hover:hover){ .uc-fav:hover{color:var(--heart)} .uc-fav.on:hover{color:var(--ink-2)} }
 .uc-fav.pf-ib{box-shadow:none;border-radius:10px;width:44px;height:44px;background:var(--paper-2)}
 /* текст под фото: строки фиксированной высоты */
