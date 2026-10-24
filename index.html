@@ -654,7 +654,7 @@ body.modal-open .demo,body.epn-open .demo{display:none}
 /* =====================================================================
    css/author.css (A4) · кабинет автора, «Стать автором», новый продукт, редактор с предпросмотром, ИИ-конструктор.
    Классы: .au-* (кабинет и редактор), .bd-* (конструктор). Суммы — .num (Onest 600), шрифт не мельче 14 px.
-   23.10 (S2): бейдж даты .au-ev-d — три строки фиксированной высоты; одна обложка .au-cov; окна для записи .au-sl; без автоанимаций.
+   23.10 (S2): бейдж даты .au-ev-d — один размер, содержимое по центру; одна обложка .au-cov; окна для записи .au-sl; без автоанимаций.
    24.10 (К1): «Новый продукт» — 6 карточек типа .au-nc (3 · 2 · 1 колонка); короткая форма: секции .au-esec без номеров,
    «Что внутри» по типу (.au-files, .au-src, программа .au-l), тарифы .au-tar с переключателями, «Добавить по желанию» .au-more,
    на телефоне — закреплённая полоса .au-bar; в кабинете — «Ждут разбора» .au-q.
@@ -724,9 +724,8 @@ body.modal-open .demo,body.epn-open .demo{display:none}
 .au-evs{display:grid}
 .au-ev{display:flex;align-items:center;gap:14px;padding:14px 0;border-top:1px solid var(--line)}
 .au-ev:first-child{border-top:0;padding-top:4px}
-/* бейдж даты: у всех один размер 60×64 и три строки фиксированной высоты (22 · 16 · 16) — день и месяц всегда на одном месте;
-   год (только не текущий) — третьей строкой, у текущего года она пустая, раскладка не меняется */
-.au-ev-d{display:grid;grid-template-rows:22px 16px 16px;align-content:center;justify-items:center;width:60px;height:64px;flex:none;border-radius:12px;background:var(--paper-2);text-align:center;white-space:nowrap;overflow:hidden}
+/* бейдж даты: у всех один размер 60×64, содержимое по центру по вертикали; год (только не текущий) — третьей строкой мелко */
+.au-ev-d{display:flex;flex-direction:column;justify-content:center;align-items:center;width:60px;height:64px;flex:none;border-radius:12px;background:var(--paper-2);text-align:center;white-space:nowrap;overflow:hidden}
 .au-ev-d b{font-size:20px;line-height:22px}
 .au-ev-d span{font-size:14px;line-height:16px;color:var(--ink-2)}
 .au-ev-d .au-ev-y{color:var(--ink-3)}
@@ -3604,7 +3603,7 @@ button.pf-bt{cursor:pointer;width:100%}
 /* ---------- эфиры строками: плитка даты, название, действие ---------- */
 .pf-evs{display:grid;gap:8px;margin:0;padding:0;list-style:none}
 .pf-ev{display:flex;align-items:center;gap:14px;padding:12px 14px 12px 12px;border-radius:16px;background:var(--white);border:1px solid var(--line)}
-.pf-ev-d{display:grid;grid-template-rows:16px 24px 16px;align-content:center;justify-items:center;width:60px;height:64px;flex:none;border-radius:12px;background:var(--paper-2);text-align:center;white-space:nowrap;overflow:hidden}
+.pf-ev-d{display:flex;flex-direction:column;justify-content:center;align-items:center;width:60px;height:64px;flex:none;border-radius:12px;background:var(--paper-2);text-align:center;white-space:nowrap;overflow:hidden}
 .pf-ev-d b{font-size:20px;line-height:24px}
 .pf-ev-d span{font-size:14px;line-height:16px;color:var(--ink-2)}
 .pf-ev-d .pf-ev-y{color:var(--ink-3)}
@@ -8102,8 +8101,8 @@ function auChart() {
       <div class="au-ch-plot" aria-hidden="true">${W.map(x => `<div class="au-ch-c"><span class="au-ch-v">${x.old ? '' : k(x.v)}</span><span class="au-ch-b ${x.old ? '' : 'new'}" style="height:${Math.max(1, x.v / top * 100).toFixed(1)}%"></span><span class="au-ch-l">${x.l.replace(' ', '<br>')}</span></div>`).join('')}</div></div>
     <div class="au-ch-leg sm t2"><span><i class="au-dot new"></i>последние 30 дней — ${rub(last)}</span>${prev ? `<span><i class="au-dot"></i>предыдущие — ${rub(prev)}</span>` : ''}</div>`;
 }
-/* бейдж даты: один размер 60×64 и три строки фиксированной высоты — день и месяц всегда на одном месте, год мелко третьей строкой
-   только если не текущий (иначе строка пустая), поэтому «17 мар 2027», «19 ноя» и «15 окт» одной ширины и раскладки */
+/* бейдж даты: один размер 60×64, день и месяц по центру; год мелко третьей строкой только если не текущий —
+   «17 мар 2027», «19 ноя» и «15 окт» одной ширины */
 function auDateBadge(d) {
   const y = d.getFullYear() !== NOW().getFullYear() ? String(d.getFullYear()) : '';
   return `<span class="au-ev-d" role="img" aria-label="${esc(d.getDate() + ' ' + MG[d.getMonth()] + (y ? ' ' + y : ''))}"><b class="num">${d.getDate()}</b><span>${esc(MS[d.getMonth()])}</span>${y ? `<span class="au-ev-y">${y}</span>` : ''}</span>`;
@@ -9772,8 +9771,8 @@ ACT['uc-fav'] = (arg, el, e) => { if (e) e.preventDefault(); const i = String(ar
 /* кнопка-сердечко (на фото карточки — cls 'on-ph'; в шапке профиля — cls 'iconbtn pf-ib') */
 /* сердечко как на маркетплейсах (основатель 24.10): на фото — только контур без подложки и подписи; нажал — закрасилось */
 function ucFavBtn(kind, id, cls) {
-  const on = API.isFav(kind, id), ph = /(^|\s)on-ph(\s|$)/.test(cls || '');
-  return `<button type="button" class="uc-fav${cls ? ' ' + cls : ''}${on ? ' on' : ''}" data-act="uc-fav" data-arg="${esc(kind + ':' + id)}" aria-pressed="${on}" aria-label="${on ? 'В избранном — убрать' : 'В избранное'}" title="${on ? 'В избранном' : 'В избранное'}" data-qa="fav">${ic(on ? 'heart-f' : 'heart', ph ? 24 : 18)}</button>`;
+  const on = API.isFav(kind, id), ph = /(^|\s)on-ph(\s|$)/.test(cls || ''), ib = /(^|\s)pf-ib(\s|$)/.test(cls || '')  /* в профиле глиф сердца визуально мельче «Поделиться», поэтому 24 */;
+  return `<button type="button" class="uc-fav${cls ? ' ' + cls : ''}${on ? ' on' : ''}" data-act="uc-fav" data-arg="${esc(kind + ':' + id)}" aria-pressed="${on}" aria-label="${on ? 'В избранном — убрать' : 'В избранное'}" title="${on ? 'В избранном' : 'В избранное'}" data-qa="fav">${ic(on ? 'heart-f' : 'heart', ph || ib ? 24 : 18)}</button>`;
 }
 /* тост со ссылкой (ядро toast() ссылок не умеет) */
 function ucToast(msg, href, label) {
@@ -12209,7 +12208,7 @@ function pcLookRow(kind, mode) {
   const thumb = c ? `<span class="pc-thumb ${cover ? 'cov' : 'av'}">${pcImg(c, '')}</span>` : `<span class="pc-thumb ${cover ? 'cov' : 'av'} pc-none" aria-hidden="true">${ic(cover ? 'camera' : 'user', 18)}</span>`;
   const title = cover ? 'Обложка профиля' : 'Фото для аватарки';
   const hint = cover ? (!c ? 'Нужна для публикации — её видят в профиле и в поиске. Вертикальный кадр: ты за работой или лучшая работа'
-    : c.auto ? 'Подобрана из работ. Нажми «Кадр», чтобы сдвинуть или приблизить, или загрузи своё фото' : c.src === 'file' ? 'Своё фото · в профиле и в поиске' : 'Из работ · в профиле и в поиске')
+    : c.auto ? 'Подобрана из работ. Нажми «Кадр», чтобы сдвинуть и приблизить. Можно загрузить своё фото' : c.src === 'file' ? 'Своё фото · в профиле и в поиске' : 'Из работ · в профиле и в поиске')
     : (!c ? 'Лицо крупно, смотришь в камеру. Без фото — инициалы' : 'Квадрат · рядом с именем везде');
   const need = cover && !c && mode !== 'ob' ? '<span class="badge line pc-need">нужно для публикации</span>' : '';
   const acts = `<div class="pc-acts">
@@ -12379,7 +12378,7 @@ function dnRvCard(x, full) {
 function dnTabReviews(p, list) {
   const sort = UI.dnRvSort || 'new', rt = dnRating(p.nick);
   const l = list.slice().sort((a, b) => sort === 'crit' ? a.stars - b.stars : String(b.d).localeCompare(String(a.d)));
-  const bar = `<div class="pf-rv-bar">${dnRateLine(rt)}<p class="sm t2 grow">Отзыв оставляет коллега, который звал на работу, — после того как обе стороны подтвердили, что работа сделана, или вторая сторона не ответила за ${DN_WAIT} дней</p>${l.length > 1 ? csel('dn-rv-sort', null, sort, [['new', 'Новые'], ['crit', 'Критичные']], { label: 'Сортировка', cls: 'pf-rv-csel' }) : ''}</div>`;
+  const bar = `<div class="pf-rv-bar">${dnRateLine(rt)}<p class="sm t2 grow">Отзыв оставляет коллега, который звал на работу. Это можно сделать, когда обе стороны отметили «Работа сделана» или вторая сторона не ответила за ${DN_WAIT} дней</p>${l.length > 1 ? csel('dn-rv-sort', null, sort, [['new', 'Новые'], ['crit', 'Критичные']], { label: 'Сортировка', cls: 'pf-rv-csel' }) : ''}</div>`;
   const items = l.length ? `<div class="pf-rvg ${l.length === 1 ? 'n1' : l.length % 2 ? 'odd' : 'n2'}">${l.map(x => dnRvCard(x, true)).join('')}</div>` : emptyState('handshake', 'Отзывов коллег пока нет', 'Появятся после сотрудничества, которое подтвердят обе стороны');
   return bar + items + `<p class="note-line pf-rv-note">${ic('shield', 18)}<span>Отзыв — после сотрудничества, подтверждённого обеими сторонами (или одной, если вторая молчит ${DN_WAIT} дней); работа не сделана — спор через поддержку. Исполнитель отвечает публично; несправедливый отзыв можно оспорить — решение за ${CONFIG.reviewDispute} дней. <a class="link-plain" href="#/rules/reviews">Отзывы и споры</a></span></p>`;
 }
@@ -15606,7 +15605,7 @@ function pfEvRow(p, e) {
   const st = pfEvStart(e), past = pfEvEnd(e) <= NOW(), ev = lvEvent(e.id) || e, other = e.host === p.nick ? e.co : e.host, op = other ? pfPerson(other) : null;
   const sub = [hm(st), e.fmt || 'Эфир', op ? `с ${op.me ? PER().fullI || PER().full : op.nameI || op.name}` : ''].filter(Boolean).map(esc).join(' · ');
   const act = (typeof evAction === 'function' ? evAction(ev, 'card') : '') || (past ? `<a class="btn btn-secondary btn-sm" href="#/lives/${esc(e.id)}">${ic('play', 16)} Смотреть</a>` : '');
-  return `<li class="pf-ev"><span class="pf-ev-d" aria-hidden="true"><span>${esc(MS[st.getMonth()])}</span><b>${st.getDate()}</b><span class="pf-ev-y">${st.getFullYear() !== NOW().getFullYear() ? st.getFullYear() : ''}</span></span><div class="pf-ev-b"><a class="link-plain pf-ev-t" href="#/lives/${esc(e.id)}">${esc(e.title)}</a><span class="sm t3">${sub}</span></div>${act ? `<div class="pf-ev-a">${act}</div>` : ''}</li>`;
+  return `<li class="pf-ev"><span class="pf-ev-d" aria-hidden="true"><span>${esc(MS[st.getMonth()])}</span><b>${st.getDate()}</b>${st.getFullYear() !== NOW().getFullYear() ? `<span class="pf-ev-y">${st.getFullYear()}</span>` : ''}</span><div class="pf-ev-b"><a class="link-plain pf-ev-t" href="#/lives/${esc(e.id)}">${esc(e.title)}</a><span class="sm t3">${sub}</span></div>${act ? `<div class="pf-ev-a">${act}</div>` : ''}</li>`;
 }
 /* отзыв купившего: подвал (оценка, что купил, «Проверенная покупка») прижат к низу; в полном списке — без обрезки и с ответом автора */
 const pfStars = n => `<span class="pf-stars" role="img" aria-label="Оценка ${n} из 5">${[1, 2, 3, 4, 5].map(i => ic('star', 14, i <= n ? 'fill' : 'off')).join('')}</span>`;
