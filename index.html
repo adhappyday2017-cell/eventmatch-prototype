@@ -593,6 +593,11 @@ body.modal-open .demo,body.epn-open .demo{display:none}
 .mtop-demo{display:none}
 @media (max-width: 640px){ .mtop-demo{display:block;flex:none;width:40px;height:40px} }
 
+/* «Настройки → Правила и документы» (вместо подвала страниц, 25.10) */
+.st-docs{display:grid;gap:10px;margin-top:12px}
+.st-love{display:inline-flex;align-items:center;gap:8px;margin-top:18px}
+.st-love .ic{color:var(--heart)}
+
 
 /* ===== css/select.css ===== */
 /* =====================================================================
@@ -5776,7 +5781,7 @@ const OB = {
   ],
   waysH: 'Как заполним профиль',
   linkL: 'Ссылка на сайт, портфолио или профиль',
-  linkPh: 'Сайт, Taplink или страница ВКонтакте',
+  linkPh: 'Сайт или страница ВКонтакте',
   shotsL: 'Скриншоты профиля',
   shotsN: '2–3, по желанию',
   fill: 'Заполнить',
@@ -7998,7 +8003,14 @@ const switchHtml = (act, arg, on, labelId) => `<button type="button" class="swit
 /* ---------- активный пункт ---------- */
 /* «Все курсы» = #/search?t=learn без промта: подсвечен только он; с промтом (q) — это «Умный поиск» при любом типе (UX-тест 23.10, A20) */
 const navLearn = r => r.parts[0] === 'search' && !r.parts[1] && r.q.get('t') === 'learn' && !(r.q.get('q') || '').trim();
+/* профиль коллеги (и его альбомы) — не пункт меню: подсвечиваем раздел, откуда пришли (основатель 25.10: «зашёл с поиска в профиль —
+   ни один раздел не выделен»); открыт сразу по ссылке — «Умный поиск» */
 function navCurrent(r) {
+  const k = navKey(r);
+  if (k && r.parts[0] !== 'u') UI.navFrom = k;
+  return k || (r.parts[0] === 'u' ? UI.navFrom || 'search' : '');
+}
+function navKey(r) {
   const [a, b] = r.parts;
   if (a === 'search' || a === 'feed') return navLearn(r) ? 'catalog' : 'search';
   if (a === 'requests') return 'requests';
@@ -8087,7 +8099,8 @@ function clubNav(r) {
 }
 /* ---------- телефон: верхняя полоса, нижнее меню, лист «Я» ---------- */
 function mobileTop(r) {
-  const cur = navCurrent(r), sec = NAV_T[cur] || (cur === 'author' ? (isAuthorNow() ? 'Кабинет автора' : 'Стать автором') : r.parts[0] === 'rules' ? 'Правила' : titleOf(r));
+  /* заголовок — по самой странице (на профиле коллеги — его имя), а не по подсвеченному пункту меню */
+  const cur = navKey(r), sec = NAV_T[cur] || (cur === 'author' ? (isAuthorNow() ? 'Кабинет автора' : 'Стать автором') : r.parts[0] === 'rules' ? 'Правила' : titleOf(r));
   /* на ≤ 640 «Показ» (панель прототипа, #demo) стоит иконкой 40×40 слева от аватара — место под него (A25) */
   return `<header class="mtop" id="top"><a class="mtop-logo" href="${homeRoute()}" aria-label="EventMatch — умный поиск">${logoMark(26)}</a><span class="mtop-t">${esc(sec || 'EventMatch')}</span><span class="spacer"></span>
     <span class="mtop-demo" aria-hidden="true"></span><a class="mtop-me" href="#/profile" aria-label="Мой профиль">${meAv('md')}</a></header>`;
@@ -8115,7 +8128,8 @@ function pageFoot() {
   return `<footer class="pfoot"><div class="pfoot-in"><span class="pfoot-love">${ic('heart-f', 16)}${esc(FOOT.love)}</span><nav class="pfoot-l" aria-label="Правила">${FOOT.links.map(([h, l]) => `<a href="${h}">${esc(l)}</a>`).join('')}</nav></div></footer>`;
 }
 function shellWrap(r, html) {
-  return `<div class="shell ${navMinNow() ? 'nav-min' : ''}">${clubNav(r)}<div class="smain">${mobileTop(r)}${html}${pageFoot()}</div>${mobileNav(r)}</div>`;
+  /* подвала в кабинете нет (основатель 25.10): правила — в «Настройки → Правила и документы» и на самих страницах правил */
+  return `<div class="shell ${navMinNow() ? 'nav-min' : ''}">${clubNav(r)}<div class="smain">${mobileTop(r)}${html}</div>${mobileNav(r)}</div>`;
 }
 /* «Как устроено сообщество»: повтор онбординга с крестиком; закрытие возвращает туда, откуда открыли (A6: howBack()) */
 const howBack = () => UI.howFrom && !/^#\/(community|start)/.test(UI.howFrom) ? UI.howFrom : homeRoute();
@@ -13713,15 +13727,16 @@ function flApply(o) {
   if (!pr.city && o.city) { pr.city = o.city; pr.srcOf.cities = 'manual'; }
   if ((o.cities || []).length && !(pr.cities || []).length) pr.cities = o.cities.filter(c => c !== pr.city);
   if (links.length) {
-    links.forEach(v => { const k = /vk\.(com|ru)/i.test(v) ? 'vk' : 'site'; if (!pr.links[k] || (pr.srcOf.links && pr.srcOf.links !== 'manual')) pr.links[k] = v; });
+    links.forEach(v => { const ig = /instagram\.com/i.test(v), k = ig ? 'ig' : /vk\.(com|ru)/i.test(v) ? 'vk' : 'site', val = ig ? flIgNick(v) : v; if (val && (!pr.links[k] || (pr.srcOf.links && pr.srcOf.links !== 'manual'))) pr.links[k] = val; });
     pr.srcOf.links = 'site'; keys.push('links');
   }
   /* «О себе» собрано из полей профиля (имя, профессия, город, стили), а не взято со страницы — так и помечаем */
   if (prof && can('about')) { const t = flAbout(); if (t) { pr.about = t; pr.srcOf.about = 'mine'; keys.push('about'); } }
   /* кадры с сайта: по новой ссылке — 6 кадров этой профессии, у разных ссылок — разные */
   let siteN = 0;
-  if (prof && fresh.length) {
-    const pool = flProfData(prof).pool.filter(n => !me.works.some(w => w.img === n)), h = flHash(fresh.join(' ')), pick = [];
+  const freshW = fresh.filter(v => !/instagram\.com/i.test(v));
+  if (prof && freshW.length) {
+    const pool = flProfData(prof).pool.filter(n => !me.works.some(w => w.img === n)), h = flHash(freshW.join(' ')), pick = [];
     for (let i = 0; i < pool.length && pick.length < 6; i++) pick.push(pool[(h + i) % pool.length]);
     siteN = pfAddWorks(pick.filter((x, i, a) => a.indexOf(x) === i), 'new').length;
   }
@@ -13746,22 +13761,26 @@ function fillBlock(where) {
   const summary = done && !(step && step < 4) ? `<div class="fl-done" data-qa="fill-done"><span class="fl-done-ic" aria-hidden="true">${ic('check', 20)}</span><div class="grow"><b>${esc(flDoneT(done))} — проверь</b><div class="sm t2">У заполненных полей стоит метка «проверь», после правки она снимается</div></div>${where === 'pf' ? `<div class="btn-row fl-done-a"><button type="button" class="btn btn-secondary btn-sm" data-act="fill-check" data-qa="fill-check">${ic('eye', 16)} Проверить поля</button><a class="link sm" href="#/u/${esc(myNick())}">Как видят другие</a></div>` : ''}</div>` : '';
   const monthAgo = pr.lastFill && (NOW() - D(pr.lastFill)) < 30 * 864e5, canRefresh = lim('fillAnytime') || !monthAgo;
   const sources = srcs.length ? `<div class="fl-srcs"><span class="sm t3">Источники:</span>${srcs.map((s, i) => `<span class="chip">${ic(s.k === 'site' ? 'globe' : s.k === 'shots' ? 'screen' : 'camera', 14)} ${esc(s.v)}<button type="button" class="x" data-act="fill-src-del" data-arg="${i}" aria-label="Удалить источник ${esc(s.v)}">${ic('x', 12)}</button></span>`).join('')}<button type="button" class="link sm" ${canRefresh ? 'data-act="fill-refresh"' : 'data-act="pw-show" data-arg="fill"'}>${ic('arrow', 14)} Обновить из источников</button>${canRefresh ? '' : `<span class="sm t3">раз в месяц · в PRO всегда</span>`}</div>` : '';
-  const form = step && step < 4 ? '' : `<div class="fl-form"><label class="field grow"><span>Ссылка на сайт, портфолио или профиль</span><input class="input" id="fill-links" data-bind="ui.fill.links" value="${esc(F.links)}" placeholder="Сайт, Taplink, ВКонтакте или Behance" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
-      <div class="fl-up"><span class="flabel" id="fl-shots-l">Скриншоты профиля · 2–3</span>${F.shots ? `<span class="chip">${ic('screen', 14)} ${F.shots} ${plural(F.shots, 'скриншот', 'скриншота', 'скриншотов')}<button type="button" class="x" data-act="fill-shots-del" aria-label="Убрать скриншоты">${ic('x', 12)}</button></span>` : `<label class="btn btn-secondary btn-sm fl-file">${ic('upload', 16)} Загрузить<input type="file" accept="image/*" multiple class="sr" data-change="fill-shots" aria-labelledby="fl-shots-l"></label>`}<span class="sm t3">шапка и сетка публикаций</span></div>
+  const form = step && step < 4 ? '' : `<div class="fl-form"><label class="field grow"><span>Ссылка на сайт, портфолио или профиль</span><input class="input" id="fill-links" data-bind="ui.fill.links" value="${esc(F.links)}" placeholder="Instagram¹, сайт или ВКонтакте" autocomplete="off" autocapitalize="off" spellcheck="false"><span class="hint fl-ig-h">Instagram¹ по ссылке не читается. Для него загрузи 2–3 скриншота ниже: шапку и сетку публикаций. Сайт и ВКонтакте заполним по ссылке</span></label>
+      <div class="fl-up"><span class="flabel" id="fl-shots-l">Скриншоты Instagram¹ · 2–3</span>${F.shots ? `<span class="chip">${ic('screen', 14)} ${F.shots} ${plural(F.shots, 'скриншот', 'скриншота', 'скриншотов')}<button type="button" class="x" data-act="fill-shots-del" aria-label="Убрать скриншоты">${ic('x', 12)}</button></span>` : `<label class="btn btn-secondary btn-sm fl-file">${ic('upload', 16)} Загрузить<input type="file" accept="image/*" multiple class="sr" data-change="fill-shots" aria-labelledby="fl-shots-l"></label>`}<span class="sm t3">шапка и сетка публикаций</span></div>
       <div class="fl-up"><span class="flabel" id="fl-works-l">Работы · 10–30</span>${(F.worksPick || []).length ? `<span class="fl-wp" data-qa="fill-picks">${F.worksPick.map(n => `<span class="fl-wp-i ph">${imgTag(n, '')}<button type="button" class="fl-wp-x" data-act="fill-works-x" data-arg="${esc(n)}" aria-label="Убрать кадр">${ic('x', 12)}</button></span>`).join('')}</span>` : ''}${pfAddBtns('fill', { sm: true })}<span class="sm t3">${esc(PC_REQ_WORK)}</span></div>
       <div class="btn-row fl-go"><button type="button" class="btn ${where === 'pf' && !isPublished() ? 'btn-secondary' : 'btn-primary'} ${compact ? 'btn-sm' : ''}" data-act="fill-run" data-qa="fill-run">${ic('sparkle', 16)} Заполнить</button>${where === 'fill' ? '' : `<a class="link sm" href="#/profile/fill">${compact ? 'Или заполню сам' : 'Полным экраном'}</a>`}</div></div>`;
   return `<section class="card fl-card ${compact ? 'fl-compact' : ''}" id="pf-fill" aria-labelledby="fl-h"><div class="fl-head"><span class="fl-spark" aria-hidden="true">${ic('sparkle', 18)}</span><div><h2 class="h4" id="fl-h">Заполним профиль за тебя</h2><p class="sm t3">Вставь ссылку, добавь скриншоты и работы — заполним поля, а ты проверишь и поправишь</p></div></div>
     ${form}${progress}${summary}${sources}
-    <p class="sm t3 fl-law">${ic('shield', 14)} Телефон, почту и дату рождения не переносим, скриншоты удаляем через 30 дней</p></section>`;
+    <p class="sm t3 fl-law">${ic('shield', 14)} Телефон, почту и дату рождения не переносим, скриншоты удаляем через 30 дней</p><p class="sm t3 fl-law">¹ Instagram принадлежит Meta, деятельность которой признана в России экстремистской и запрещена</p></section>`;
 }
 /* скриншоты — настоящий выбор файлов (считаем картинки, как в знакомстве); работы — только свои файлы (pfAddBtns, круг 3) */
 CHANGE['fill-shots'] = el => { const n = Array.from(el.files || []).filter(f => /^image\//.test(f.type)).length; FL().shots = n; rerender(); if (n) toast(`${n} ${plural(n, 'скриншот', 'скриншота', 'скриншотов')} — нажми «Заполнить»`, 'screen'); };
 ACT['fill-shots-del'] = () => { FL().shots = 0; rerender(); };
 ACT['fill-works-x'] = n => { const F = FL(); F.worksPick = (F.worksPick || []).filter(x => x !== n); F.works = F.worksPick.length; rerender(); };
+/* ник из ссылки Instagram: instagram.com/kotova.mua/ → kotova.mua (в профиле — только текстом, со сноской) */
+const flIgNick = v => (String(v).match(/instagram\.com\/([A-Za-z0-9._]+)/i) || [])[1] || '';
 ACT['fill-run'] = () => {
   const F = FL(), links = String(F.links || '').trim();
   if (!links && !F.shots && !(F.worksPick || []).length) { toast('Вставь ссылку или загрузи скриншоты и работы', 'info'); const i = $('#fill-links'); if (i) i.focus(); return; }
-  if (links && links.split(/[,\s]+/).filter(Boolean).some(flBadLink)) { toast('Не похоже на ссылку — нужен адрес сайта или профиля', 'info'); const i = $('#fill-links'); if (i) i.focus(); return; }
+  const lv = links.split(/[,\s]+/).filter(Boolean);
+  if (lv.length && lv.every(v => /instagram\.com/i.test(v)) && !F.shots) { toast('Instagram не отдаёт данные по ссылке. Добавь 2–3 скриншота профиля: шапку и сетку публикаций', 'info'); const b = $('input[data-change="fill-shots"]'); if (b) b.focus(); return; }
+  if (links && lv.some(flBadLink)) { toast('Не похоже на ссылку — нужен адрес сайта или профиля', 'info'); const i = $('#fill-links'); if (i) i.focus(); return; }
   F.step = 1; F.done = null; F.manual = false; rerender();
   const id = (F.run = (F.run || 0) + 1);
   later(() => { if (F.run !== id) return; F.step = 2; rerender(); }, 800);
@@ -17079,7 +17098,7 @@ function pfFieldEdit(k) {
     case 'styles': return `<label class="field"><span class="sr">Стили</span><input class="input" data-bind="ui.pfStyles" value="${esc((pr.styles || []).join(', '))}" placeholder="Репортаж, портрет, свет из окна — через запятую"></label>`;
     case 'gear': return `<label class="field"><span class="sr">Техника</span>${inp('gear', pfGear(pr.gear), 'Камера · объективы · свет')}</label>`;
     case 'exp': return `<div class="stack">${(pr.exp || []).map((e, i) => `<div class="pf-exp-row"><input class="input pf-exp-y" data-bind="me.prof.exp.${i}.0" value="${esc(e[0])}" placeholder="2019" inputmode="numeric" aria-label="Год"><input class="input" data-bind="me.prof.exp.${i}.1" value="${esc(e[1])}" placeholder="Что случилось" aria-label="Событие"><button type="button" class="iconbtn" data-act="prof-exp-del" data-arg="${i}" aria-label="Убрать строку">${ic('x', 18)}</button></div>`).join('')}<button type="button" class="btn btn-quiet btn-sm" data-act="prof-exp-add">${ic('plus', 16)} Год</button></div>`;
-    case 'links': return `<div class="grid2"><label class="field"><span>Сайт или Taplink</span>${inp('links.site', L.site, 'taplink.cc/имя или свой сайт')}</label><label class="field"><span>ВКонтакте</span>${inp('links.vk', L.vk, 'vk.com/…')}</label><label class="field"><span>Telegram-канал</span>${inp('links.tg', L.tg, 't.me/…')}</label><label class="field"><span>Ник в Instagram — покажем текстом¹</span>${inp('links.ig', L.ig, 'имя без @')}<span class="hint">Только текстом в профиле, публикации не забираем</span></label></div>`;
+    case 'links': return `<div class="grid2"><label class="field"><span>Сайт</span>${inp('links.site', L.site, 'свой сайт или страница-визитка')}</label><label class="field"><span>ВКонтакте</span>${inp('links.vk', L.vk, 'vk.com/…')}</label><label class="field"><span>Telegram-канал</span>${inp('links.tg', L.tg, 't.me/…')}</label><label class="field"><span>Ник в Instagram — покажем текстом¹</span>${inp('links.ig', L.ig, 'имя без @')}<span class="hint">Только текстом в профиле, публикации не забираем</span></label></div>`;
   }
   return '';
 }
@@ -17117,7 +17136,7 @@ ROUTES['profile'] = r => {
     /* ревью 25.10: «Заполним профиль за тебя» после знакомства — за ссылкой (открыт, пока идёт заполнение или есть итог);
        статистика — только у опубликованного и когда просмотры есть */
     const F = FL(), fillOn = UI.pfFillOpen || (F.step && F.step < 4) || !!F.done;
-    const fill = fillOn ? fillBlock('pf') : `<p class="pf-fill-l" data-qa="pf-fill-open"><button type="button" class="link" data-act="pf-fill-open">${ic('sparkle', 16)} Заполнить по ссылке</button><span class="sm t3">сайт, Taplink или ВКонтакте — поля заполним, ты проверишь</span></p>`;
+    const fill = fillOn ? fillBlock('pf') : `<p class="pf-fill-l" data-qa="pf-fill-open"><button type="button" class="link" data-act="pf-fill-open">${ic('sparkle', 16)} Заполнить по ссылке</button><span class="sm t3">по скриншотам Instagram¹, сайту или ВКонтакте. Ты проверишь</span></p>`;
     const v = pub ? pfViews().total : 0;
     body = `<div class="pf-rows">${rows}${pfOpen4Row()}</div>${fill}${v ? `<p class="sm t3 pf-stats-l"><a class="link-plain" href="#/profile/stats">Статистика профиля</a> · просмотры за 7 дней: <b class="num">${v}</b></p>` : ''}`;
   }
@@ -19566,14 +19585,21 @@ function stData() {
       ${stRow('Выйти из аккаунта', 'войти снова — по номеру телефона', `<a class="btn btn-ghost btn-sm" href="#/login" data-act="logout">${ic('logout', 16)} Выйти</a>`)}
     </ul></section>`;
 }
+/* правила и документы — сюда переехал подвал страниц (основатель 25.10); правила рекомендательных технологий (149-ФЗ, ст. 10.2-2) доступны отсюда,
+   со страниц правил и из «Приватности» */
+function stRules() {
+  return `<section class="card st-sec" id="st-rules" aria-labelledby="st-rules-h"><h2 class="d3" id="st-rules-h">Правила и документы</h2>
+    <ul class="st-docs">${RULE_ORDER.filter(k => RULES[k]).map(k => `<li><a class="link" href="#/rules/${k}">${esc(RULES[k].t)}</a></li>`).join('')}</ul>
+    <p class="sm t3 st-love">${ic('heart-f', 16)} ${esc(FOOT.love)}</p></section>`;
+}
 function stView() {
   const A = stAcct(), del = A.deleteAt;
-  const nav = [['st-login', 'Вход'], ['st-chan', 'Каналы и тихие часы'], ['st-what', 'Уведомления'], ['st-priv', 'Приватность'], ['st-buy', 'Покупки'], ['st-pay', 'Платёжное'], ['st-data', 'Данные']];
+  const nav = [['st-login', 'Вход'], ['st-chan', 'Каналы и тихие часы'], ['st-what', 'Уведомления'], ['st-priv', 'Приватность'], ['st-buy', 'Покупки'], ['st-pay', 'Платёжное'], ['st-data', 'Данные'], ['st-rules', 'Правила']];
   const to = route().q.get('to');
   const head = `<header class="st-head"><span class="kick">Аккаунт</span><h1 class="d1">Настройки</h1></header>
     <nav class="st-nav fchips" aria-label="Разделы настроек">${nav.map(([id, l]) => `<a class="pick" href="#/settings?to=${id}" ${to === id ? 'aria-current="true" aria-pressed="true"' : ''}>${esc(l)}</a>`).join('')}</nav>
     ${del ? `<div class="pane tight st-del-b" role="status">${ic('alert', 20)}<span class="grow"><b>Аккаунт удалится ${dDay(D(del))}.</b> Профиль скрыт от коллег, данные обезличим в этот день. Купленное обучение доступно до удаления</span><button type="button" class="btn btn-secondary btn-sm" data-act="st-del-undo">Отменить удаление</button></div>` : ''}`;
-  return clubShell('', `<div class="st-wrap">${head}${stLogin()}${stChannels()}${stWhat()}${stPriv()}${stBuy()}${stPay()}${stData()}</div>`, 'st-page');
+  return clubShell('', `<div class="st-wrap">${head}${stLogin()}${stChannels()}${stWhat()}${stPriv()}${stBuy()}${stPay()}${stData()}${stRules()}</div>`, 'st-page');
 }
 ROUTES['settings'] = r => r.q.get('tab') === 'purchases' ? redirect('#/settings?to=st-buy') : stView();
 SCREENS.push(['#/settings?to=st-buy', 'Настройки · Покупки', 'Аккаунт и правила']);
